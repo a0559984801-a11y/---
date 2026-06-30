@@ -2,13 +2,13 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https: data: blob:; media-src 'self' https:; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com; frame-src 'none'; object-src 'none'; base-uri 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https: data: blob:; media-src 'self' https:; connect-src 'self' https://mzrnwtwyuligsaxeoxhh.supabase.co https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com; frame-src 'none'; object-src 'none'; base-uri 'self';">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preconnect" href="https://script.google.com">
+<link rel="preconnect" href="https://mzrnwtwyuligsaxeoxhh.supabase.co">
 <link rel="dns-prefetch" href="https://www.googletagmanager.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap">
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
@@ -20,14 +20,15 @@ gtag('consent','default',{'analytics_storage':'denied','ad_storage':'denied'});
 <link rel="apple-touch-icon" href="favicon.png">
 <meta name="description" content="זמינות אולמות חתונה בזמן אמת - בדקו אונליין אילו אולמות פנויים בתאריך שלכם, השוו בין אולמות, וצרו קשר בקליק. עדכון אוטומטי מהלוח שנה של כל אולם.">
 <meta name="keywords" content="אולמות חתונה, זמינות אולמות, אולמות אירועים, אולם לחתונה, חיפוש אולם פנוי">
-<link rel="canonical" href="https://xn----zhceowpcf6gc.xn--4dbrk0ce/index.html">
+<!-- TODO: יש לעדכן את כתובת ה-canonical וה-og:url/og:image לכתובת המלאה ברגע שיש דומיין סופי למיזם -->
+<link rel="canonical" href="index.html">
 <meta property="og:type" content="website">
 <meta property="og:title" content="זמינות אולמות חתונה - כל האולמות במקום אחד">
 <meta property="og:description" content="בדקו בזמן אמת אילו אולמות חתונה פנויים בתאריך שלכם. השוו בין אולמות, סננו לפי אזור ומחיר, וצרו קשר ישירות.">
-<meta property="og:image" content="https://xn----zhceowpcf6gc.xn--4dbrk0ce/og-image.png">
+<meta property="og:image" content="og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:url" content="https://xn----zhceowpcf6gc.xn--4dbrk0ce/index.html">
+<meta property="og:url" content="index.html">
 <meta property="og:locale" content="he_IL">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="זמינות אולמות חתונה - כל האולמות במקום אחד">
@@ -505,9 +506,12 @@ th.hall-name-th:hover{background:#2a2a4e;}
   </div>
 </div>
 
+<script src="supabase.min.js"></script>
 <script>
-const API_URL='https://script.google.com/macros/s/AKfycbylfK2AoCFcDCpvRWCS6DB3ciPL0VvzsrlNhtmhOxIuxW7v5LmI6Sic5vTvY37gae3mWQ/exec';
-const API_URL_ANALYTICS='https://script.google.com/macros/s/AKfycbzXg5HsiZfBbcYgrfViOppPeT1v-nyn-pWI5a1ahNliMpzNmdAvvJqNnkGuNyW5y6FZ/exec';
+// חיבור ל-Supabase (מסד הנתונים החדש של המיזם)
+const SUPABASE_URL='https://mzrnwtwyuligsaxeoxhh.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16cm53dHd5dWxpZ3NheGVveGhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MDExMDUsImV4cCI6MjA5ODM3NzEwNX0.1zJKrl4iJtWcv46h8pmiub0u2BoiIGapWmZuDJjLNKs';
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 // Safe JSON parse - never crashes on bad data
 function safeParse(str,fallback){
   if(!str) return fallback;
@@ -522,27 +526,18 @@ function toLocalDateStr(d){
   const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
   return `${y}-${m}-${day}`;
 }
-// Send a tracking "beacon" (logVisit/logHallView) and retry once if it fails.
-// Apps Script returns 503 when too many requests hit the deployment at the
-// same moment (e.g. logVisit firing right alongside the halls/settings data
-// fetch). A single delayed retry with jitter clears almost all of these.
-function sendBeacon(url){
-  // fetch עם keepalive — לא חוסם את הדף, עובד גם בעת ניווט החוצה.
-  // לא משתמשים ב-<img> כי onerror תמיד נורה על תגובת JSON (לא תמונה),
-  // מה שגרם ל-retry אוטומטי וכפילות ברשומות.
-  try{fetch(url,{method:'GET',keepalive:true,cache:'no-store'});}catch(e){}
+// רישום ביקור/צפייה ל-Supabase (fire and forget, אף פעם לא חוסם את הדף)
+function nowParts(){
+  const d=new Date();
+  return {log_date:toLocalDateStr(d), log_time:d.toTimeString().slice(0,8)};
 }
-// Log visit to Google Sheets (fire and forget, never blocks the page)
 let _visitLogged=false;
 function logVisit(page){
   if(_visitLogged)return; _visitLogged=true;
-  // Fire after load + idle so the slow Apps Script beacon never extends the load event.
-  // An extra randomized delay staggers this away from the initial data fetch
-  // (which also hits the same Apps Script deployment), reducing 503s.
   const fire=()=>{try{
     const device=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)?'mobile':'desktop';
-    const url=API_URL_ANALYTICS+'?action=logVisit&page='+encodeURIComponent(page)+'&device='+device+'&t='+Date.now();
-    setTimeout(()=>sendBeacon(url),500+Math.random()*1000);
+    const {log_date,log_time}=nowParts();
+    sb.from('analytics_log').insert({log_date,log_time,device,page}).then(()=>{});
   }catch(e){}};
   const sched=()=>window.requestIdleCallback?window.requestIdleCallback(fire):setTimeout(fire,1);
   if(document.readyState==='complete') sched();
@@ -551,8 +546,8 @@ function logVisit(page){
 function logHallView(name){
   try{
     const device=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)?'mobile':'desktop';
-    const url=API_URL_ANALYTICS+'?action=logHallView&hall='+encodeURIComponent(name)+'&device='+device+'&t='+Date.now();
-    sendBeacon(url);
+    const {log_date,log_time}=nowParts();
+    sb.from('hall_views').insert({log_date,log_time,device,hall_name:name}).then(()=>{});
   }catch(e){}
 }
 const DAYS_HE=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
@@ -1357,15 +1352,36 @@ async function fetchData(){
   const _ac=new AbortController();
   const _timer=setTimeout(()=>_ac.abort(),_timeoutMs);
   try{
-    const _cb='_cb='+Date.now(); // cache-buster so the browser never serves a stale response
-    const [r1,r2,r3]=await Promise.all([
-      fetch(API_URL+'?'+_cb,{cache:'no-store',signal:_ac.signal}),
-      fetch(API_URL+'?action=settings&'+_cb,{cache:'no-store',signal:_ac.signal}),
-      fetch(API_URL+'?action=halls&'+_cb,{cache:'no-store',signal:_ac.signal})
+    const _today=new Date();_today.setHours(0,0,0,0);
+    const _lo=new Date(_today.getTime()-7*864e5);
+    const _hi=new Date(_today.getTime()+400*864e5);
+    async function fetchAllAvailability(){
+      const pageSize=1000;
+      let from=0, all=[], done=false;
+      while(!done){
+        const {data,error}=await sb.from('availability').select('*')
+          .gte('date',toLocalDateStr(_lo)).lte('date',toLocalDateStr(_hi))
+          .order('id',{ascending:true})
+          .range(from,from+pageSize-1)
+          .abortSignal(_ac.signal);
+        if(error) throw error;
+        all=all.concat(data||[]);
+        if(!data||data.length<pageSize) done=true; else from+=pageSize;
+      }
+      return all;
+    }
+    const [availRows,r2,r3]=await Promise.all([
+      fetchAllAvailability(),
+      sb.from('settings').select('*').abortSignal(_ac.signal),
+      sb.from('halls').select('*').abortSignal(_ac.signal)
     ]);
-    const availData=trimAvail(r1.ok?await r1.json():[]);
-    const settingsData=r2.ok?await r2.json():{};
-    const hallsData=r3.ok?await r3.json():[];
+    if(r2.error) throw r2.error;
+    if(r3.error) throw r3.error;
+    const availData=trimAvail(availRows||[]);
+    // settings מגיע מ-Supabase כשורות key/value — הופכים לאובייקט שטוח כמו שהיה מ-Apps Script
+    const settingsData={};
+    (r2.data||[]).forEach(row=>{settingsData[row.key]=row.value;});
+    const hallsData=r3.data||[];
     const fresh=JSON.stringify({avail:availData,settings:settingsData,halls:hallsData});
     // Data unchanged since cache render → skip the expensive second render
     if(renderedFromCache&&cachedRaw===fresh) return;
