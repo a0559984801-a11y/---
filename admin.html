@@ -2,12 +2,12 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https: data: blob:; media-src 'self' https:; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com; frame-src 'none'; object-src 'none'; base-uri 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https: data: blob:; media-src 'self' https:; connect-src 'self' https://mzrnwtwyuligsaxeoxhh.supabase.co https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com; frame-src 'none'; object-src 'none'; base-uri 'self';">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preconnect" href="https://script.google.com">
+<link rel="preconnect" href="https://mzrnwtwyuligsaxeoxhh.supabase.co">
 <link rel="dns-prefetch" href="https://www.googletagmanager.com">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-H8MXTNM0HY"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-H8MXTNM0HY');</script>
@@ -129,9 +129,10 @@ textarea{resize:vertical;min-height:70px;}
 <div id="passwordGate">
   <div id="passwordBox">
     <h2>🔐 כניסה לניהול</h2>
-    <p>הכנס סיסמה להמשך</p>
-    <div class="err" id="gateErr">❌ סיסמה שגויה, נסה שוב</div>
-    <input type="password" id="gatePass" placeholder="סיסמה..." onkeydown="if(event.key==='Enter')checkGate()"/>
+    <p>התחברות עם אימייל וסיסמה</p>
+    <div class="err" id="gateErr">❌ אימייל או סיסמה שגויים</div>
+    <input type="email" id="gateEmail" placeholder="אימייל..." autocomplete="username" style="margin-bottom:8px;"/>
+    <input type="password" id="gatePass" placeholder="סיסמה..." autocomplete="current-password" onkeydown="if(event.key==='Enter')checkGate()"/>
     <button onclick="checkGate()">כניסה</button>
     <div class="back-btn" onclick="history.back()" style="margin-top:10px;">← חזרה לאתר</div>
   </div>
@@ -153,12 +154,13 @@ textarea{resize:vertical;min-height:70px;}
     <button class="nav-btn" onclick="show('order',event)">↕️ סדר טורי הטבלה</button>
     <button class="nav-btn" onclick="show('hidden-days',event)">🗓 ימים מוסתרים</button>
     <button class="nav-btn" onclick="show('hidden-dates',event)">📅 תאריכים מוסתרים</button>
+    <button class="nav-btn" onclick="show('availability',event)">📆 זמינות (תפוס/פנוי)</button>
     <button class="nav-btn" onclick="show('contact',event)">📬 יצירת קשר</button>
     <button class="nav-btn" onclick="show('security',event)">🔑 סיסמה</button>
-    <button class="nav-btn" onclick="show('sync',event)">🔄 סקריפטים</button>
     <div style="border-top:1px solid #2a2a4e;margin:12px 0;"></div>
     <button class="nav-btn" id="saveAllBtn" onclick="saveAll()" style="background:#e8b86d;color:#1a1a2e;font-weight:700;text-align:center;">💾 שמור הכל</button>
     <div id="saveAllOk" style="display:none;color:#2ecc71;font-size:0.72rem;text-align:center;margin-top:6px;">✓ הכל נשמר!</div>
+    <button class="nav-btn" onclick="logoutAdmin()" style="margin-top:10px;color:#e74c3c;">🚪 התנתקות</button>
   </div>
   <div class="content">
 
@@ -355,6 +357,30 @@ textarea{resize:vertical;min-height:70px;}
         <button class="btn-save" onclick="saveHiddenDates()" style="margin-top:18px;">💾 שמור לשרת</button>
         <div class="ok" id="hiddenDatesOk">✓ נשמר!</div>
       </div>
+
+    <!-- AVAILABILITY MANUAL OVERRIDE -->
+    <div class="panel" id="panel-availability">
+      <h2>📆 עדכון זמינות ידני</h2>
+      <div class="card">
+        <p style="font-size:0.82rem;color:#666;margin-bottom:16px">סימון ידני ומיידי של תאריך כפנוי/תפוס לאולם נבחר. עדכון זה משפיע מיד על האתר, ללא צורך בהרצת סנכרון.</p>
+        <label>אולם</label>
+        <select id="availHallSelect"></select>
+        <label>תאריך</label>
+        <input type="date" id="availDateInput"/>
+        <label>סטטוס</label>
+        <select id="availStatusSelect">
+          <option value="פנוי">פנוי</option>
+          <option value="תפוס">תפוס</option>
+        </select>
+        <button class="btn-save" onclick="saveManualAvailability()" style="margin-top:12px;">💾 עדכן</button>
+        <div class="ok" id="availOk">✓ עודכן!</div>
+        <div class="err" id="availErr" style="display:none;"></div>
+      </div>
+      <div class="card">
+        <p style="font-size:0.82rem;color:#666;margin-bottom:10px">תאריכים קרובים שעודכנו ידנית לאולם הנבחר (30 הימים הקרובים)</p>
+        <div id="availRecentList" style="font-size:0.82rem;"></div>
+      </div>
+    </div>
     </div>
 
     <!-- HIDDEN DAYS -->
@@ -404,54 +430,20 @@ textarea{resize:vertical;min-height:70px;}
       </div>
     </div>
 
-    <!-- SCRIPTS / SYNC -->
-    <div class="panel" id="panel-sync">
-      <h2>🔄 הרצת סקריפטים</h2>
-      <p style="color:#666;font-size:0.85rem;margin-bottom:14px;">הרצה חד-פעמית מיידית. אחרת כל סקריפט רץ אוטומטית בתזמון שלו. שינויים ששמרת בניהול יופיעו באתר רק אחרי הרצה (יומית או כאן).</p>
-      <div class="card">
-        <b>זמינות</b> <span style="color:#888;font-size:0.82rem;">— בשינוי בגיליון / כל 15 דק'</span>
-        <div class="sync-last" id="last-availability" style="font-size:0.78rem;color:#999;margin:4px 0;"></div>
-        <button class="btn-save" onclick="runSync('availability',this)">▶ הרץ עכשיו</button>
-      </div>
-      <div class="card">
-        <b>הגדרות</b> <span style="color:#888;font-size:0.82rem;">— פעם ביום</span>
-        <div class="sync-last" id="last-settings" style="font-size:0.78rem;color:#999;margin:4px 0;"></div>
-        <button class="btn-save" onclick="runSync('settings',this)">▶ הרץ עכשיו</button>
-      </div>
-      <div class="card">
-        <b>פרטי אולמות</b> <span style="color:#888;font-size:0.82rem;">— פעם ביום</span>
-        <div class="sync-last" id="last-halls" style="font-size:0.78rem;color:#999;margin:4px 0;"></div>
-        <button class="btn-save" onclick="runSync('halls',this)">▶ הרץ עכשיו</button>
-      </div>
-      <div class="card">
-        <b>נתוני גלישה</b> <span style="color:#888;font-size:0.82rem;">— פעם ביום</span>
-        <div class="sync-last" id="last-analytics" style="font-size:0.78rem;color:#999;margin:4px 0;"></div>
-        <button class="btn-save" onclick="runSync('analytics',this)">▶ הרץ עכשיו</button>
-      </div>
-      <div class="card">
-        <b>סנכרון יומן</b> <span style="color:#888;font-size:0.82rem;">— בשינוי ביומן / כל 15 דק'</span>
-        <div class="sync-last" id="last-calendar" style="font-size:0.78rem;color:#999;margin:4px 0;"></div>
-        <button class="btn-save" onclick="runSync('calendar',this)">▶ הרץ עכשיו</button>
-      </div>
-      <div class="card">
-        <b>⏱️ זמן ריצה מצטבר היום — פרויקט ראשי</b> <span style="color:#888;font-size:0.82rem;">— מתאפס אוטומטית בחצות (מתוך 360 דק' מכסה יומית)</span>
-        <div class="sync-last" id="daily-runtime" style="font-size:0.78rem;color:#999;margin:4px 0;"></div>
-      </div>
-      <div class="card">
-        <b>⏱️ זמן ריצה מצטבר היום — פרויקט אנליטיקה</b> <span style="color:#888;font-size:0.82rem;">— מתאפס אוטומטית בחצות (מתוך 90 דק' מכסה יומית)</span>
-        <div class="sync-last" id="daily-runtime-analytics" style="font-size:0.78rem;color:#999;margin:4px 0;"></div>
-      </div>
-    </div>
 
   </div>
 </div>
 
 </div><!-- end adminContent -->
 
+<script src="supabase.min.js"></script>
 <script>
-const API_URL='https://script.google.com/macros/s/AKfycbylfK2AoCFcDCpvRWCS6DB3ciPL0VvzsrlNhtmhOxIuxW7v5LmI6Sic5vTvY37gae3mWQ/exec';
-const API_URL_ANALYTICS='https://script.google.com/macros/s/AKfycbzXg5HsiZfBbcYgrfViOppPeT1v-nyn-pWI5a1ahNliMpzNmdAvvJqNnkGuNyW5y6FZ/exec';
-let _adminPass='';
+// חיבור ל-Supabase (מסד הנתונים החדש של המיזם)
+const SUPABASE_URL='https://mzrnwtwyuligsaxeoxhh.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16cm53dHd5dWxpZ3NheGVveGhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MDExMDUsImV4cCI6MjA5ODM3NzEwNX0.1zJKrl4iJtWcv46h8pmiub0u2BoiIGapWmZuDJjLNKs';
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+
+function localDateStr(d){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`;}
 
 // ===== Statistics / נתוני גלישה =====
 async function loadStats(){
@@ -461,21 +453,45 @@ async function loadStats(){
   loading.textContent='טוען נתונים...';
   content.style.display='none';
   try{
-    const s=await fetchAuthed('stats', API_URL_ANALYTICS);
-    document.getElementById('statToday').textContent=s.today||0;
-    document.getElementById('statWeek').textContent=s.week||0;
-    document.getElementById('statMonth').textContent=s.month||0;
-    document.getElementById('statTotal').textContent=s.total||0;
-    const avg=s.avgDuration||0;
-    document.getElementById('statAvgDuration').textContent=avg>0?(avg>=60?Math.floor(avg/60)+'ד׳ '+( avg%60?avg%60+'ש׳':''):avg+'ש׳'):'—';
+    const today=new Date();today.setHours(0,0,0,0);
+    const since=new Date(today.getTime()-13*864e5); // 14 ימים אחורה (כולל היום)
+    const {data:rows,error}=await sb.from('analytics_log').select('*').gte('log_date',localDateStr(since)).order('id',{ascending:true});
+    if(error) throw error;
+
+    const todayStr=localDateStr(today);
+    const weekAgo=localDateStr(new Date(today.getTime()-6*864e5));
+    const monthAgo=localDateStr(new Date(today.getTime()-29*864e5));
+    let cToday=0,cWeek=0,cMonth=0,cTotal=rows.length;
+    const byDay={},byHour={},byDevice={},byPage={};
+    rows.forEach(r=>{
+      const d=r.log_date;
+      if(d===todayStr) cToday++;
+      if(d>=weekAgo) cWeek++;
+      if(d>=monthAgo) cMonth++;
+      byDay[d]=(byDay[d]||0)+1;
+      if(r.log_time){
+        const h=r.log_time.slice(0,2);
+        byHour[h]=(byHour[h]||0)+1;
+      }
+      const dev=r.device||'desktop';
+      byDevice[dev]=(byDevice[dev]||0)+1;
+      const pg=(r.page||'').includes('halls')?'halls':'index';
+      byPage[pg]=(byPage[pg]||0)+1;
+    });
+
+    document.getElementById('statToday').textContent=cToday;
+    document.getElementById('statWeek').textContent=cWeek;
+    document.getElementById('statMonth').textContent=cMonth;
+    document.getElementById('statTotal').textContent=cTotal;
+    document.getElementById('statAvgDuration').textContent='—'; // משך שהייה לא נאסף כרגע ב-Supabase
 
     // Last 14 days chart
     const days=[];
     for(let i=13;i>=0;i--){
       const d=new Date();d.setDate(d.getDate()-i);
-      const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+      const key=localDateStr(d);
       const label=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0');
-      days.push({label:label,val:(s.byDay&&s.byDay[key])||0});
+      days.push({label:label,val:byDay[key]||0});
     }
     renderBarChart('chartDays',days);
 
@@ -483,7 +499,7 @@ async function loadStats(){
     const hours=[];
     for(let h=0;h<24;h++){
       const key=String(h).padStart(2,'0');
-      const val=(s.byHour&&s.byHour[key])||0;
+      const val=byHour[key]||0;
       if(val>0) hours.push({label:key+':00',val:val});
     }
     hours.sort((a,b)=>b.val-a.val);
@@ -491,18 +507,16 @@ async function loadStats(){
 
     // Breakdown by device and page
     let bd='';
-    const dev=s.byDevice||{};
-    const pg=s.byPage||{};
     bd+='<strong>מכשירים:</strong><br>';
-    bd+='📱 נייד: '+(dev.mobile||0)+' &nbsp;|&nbsp; 💻 מחשב: '+(dev.desktop||0)+'<br><br>';
+    bd+='📱 נייד: '+(byDevice.mobile||0)+' &nbsp;|&nbsp; 💻 מחשב: '+(byDevice.desktop||0)+'<br><br>';
     bd+='<strong>עמודים:</strong><br>';
-    bd+='🏠 דף הבית: '+(pg.index||0)+' &nbsp;|&nbsp; 🏛 מידע על אולמות: '+(pg.halls||0);
+    bd+='🏠 דף הבית: '+(byPage.index||0)+' &nbsp;|&nbsp; 🏛 מידע על אולמות: '+(byPage.halls||0);
     document.getElementById('statsBreakdown').innerHTML=bd;
 
     loading.style.display='none';
     content.style.display='block';
   }catch(err){
-    loading.textContent='⚠️ שגיאה בטעינת הנתונים. ודא שיצרת לשונית "ביקורים" בגיליון ועדכנת את ה-Apps Script.';
+    loading.textContent='⚠️ שגיאה בטעינת הנתונים.';
   }
   loadHallViewStats();
 }
@@ -513,12 +527,22 @@ async function loadHallViewStats(){
   loading.style.display='block';
   wrap.style.display='none';
   try{
-    const data=await fetchAuthed('hallStats', API_URL_ANALYTICS);
+    const today=new Date();today.setHours(0,0,0,0);
+    const since=new Date(today.getTime()-13*864e5);
+    const {data:rows,error}=await sb.from('hall_views').select('*').gte('log_date',localDateStr(since)).order('id',{ascending:true});
+    if(error) throw error;
     // data = { hallName: { "2025-01-01": 3, ... }, ... }
+    const data={};
+    rows.forEach(r=>{
+      const name=r.hall_name||'';
+      if(!name) return;
+      if(!data[name]) data[name]={};
+      data[name][r.log_date]=(data[name][r.log_date]||0)+1;
+    });
     const days=[];
     for(let i=13;i>=0;i--){
       const d=new Date();d.setDate(d.getDate()-i);
-      days.push(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'));
+      days.push(localDateStr(d));
     }
     const dayLabels=days.map(d=>{const p=d.split('-');return p[2]+'/'+p[1];});
     const hallNames=Object.keys(data).sort();
@@ -576,38 +600,61 @@ function show(name,e){
   if(name==='order') renderOrderList();
   if(name==='stats') loadStats();
   if(name==='hidden-dates') renderHideCalendar();
-  if(name==='sync') loadSyncStatus();
+  if(name==='availability') initAvailabilityTab();
 }
 function showOk(id){const el=document.getElementById(id);el.style.display='block';setTimeout(()=>el.style.display='none',2500);}
 
-// Save to server via POST with auth
-async function saveToServer(action, data) {
-  try {
-    await fetch(API_URL, {
-      method: 'POST',
-      body: JSON.stringify({action, data, authPass: _adminPass}),
-      headers: {'Content-Type': 'text/plain'}
+// שמירת אולמות ל-Supabase: אולמות עם id קיים מתעדכנים (update), אולמות חדשים נוספים (insert)
+async function saveHallsToServer(payload){
+  try{
+    const list=(payload||[]).filter(h=>h&&h.name);
+    if(!list.length) return;
+    const toRow=h=>({
+      name:h.name, city:h.city||'', kashrut:h.kashrut||'', access:h.access||'',
+      seats:h.seats||'', description:h.desc||h.description||'', img:h.img||'',
+      images:h.images||[], vid:h.vid||null, phone:h.phone||'', street:h.street||'',
+      links:h.links||[], custom_fields:h.customFields||h.custom_fields||[], ical_url:h.icalUrl||h.ical_url||''
     });
-  } catch(e) {}
+    const existing=list.filter(h=>h.id);
+    const fresh=list.filter(h=>!h.id);
+    // עדכון אולמות קיימים (לפי id, אחד-אחד כדי שלא לגעת בשורות שלא השתנו)
+    for(const h of existing){
+      const {error}=await sb.from('halls').update(toRow(h)).eq('id',h.id);
+      if(error) console.error('update hall failed',h.name,error);
+    }
+    // הוספת אולמות חדשים
+    if(fresh.length){
+      const {data,error}=await sb.from('halls').insert(fresh.map(toRow)).select();
+      if(error){ console.error('insert halls failed',error); }
+      else if(data){
+        // משייכים את ה-id החדש שחזר מהשרת לאובייקטים המקומיים, כדי שעריכה הבאה תהיה update ולא insert כפול
+        data.forEach(row=>{
+          const local=halls.find(h=>!h.id && h.name===row.name);
+          if(local) local.id=row.id;
+        });
+      }
+    }
+  }catch(e){ console.error('saveHallsToServer failed',e); }
+}
+
+// שמירת settings ל-Supabase: upsert לכל מפתח בנפרד (key/value)
+async function saveSettingsToServer(payload){
+  try{
+    const rows=Object.keys(payload||{}).map(key=>({key, value: typeof payload[key]==='string'?payload[key]:JSON.stringify(payload[key])}));
+    if(!rows.length) return;
+    const {error}=await sb.from('settings').upsert(rows,{onConflict:'key'});
+    if(error) throw error;
+    // מעדכנים את אובייקט ה-settings המקומי כדי שתצוגות שמסתמכות עליו יתעדכנו מיד
+    Object.assign(settings, payload);
+  }catch(e){ console.error('saveSettingsToServer failed',e); }
 }
 
 async function postData(type, payload) {
   if (type === 'halls') {
-    await saveToServer('saveHalls', payload);
+    await saveHallsToServer(payload);
   } else if (type === 'settings') {
-    await saveToServer('saveSettings', payload);
+    await saveSettingsToServer(payload);
   }
-}
-
-// Authenticated read (stats/hallStats). Uses POST so the admin password is sent in the
-// body, never in a URL that Google logs or the browser keeps in history.
-async function fetchAuthed(action,url){
-  const res=await fetch(url||API_URL,{
-    method:'POST',
-    body:JSON.stringify({action,authPass:_adminPass}),
-    headers:{'Content-Type':'text/plain'}
-  });
-  return res.json();
 }
 
 function toggleCycleOptions(){
@@ -615,55 +662,27 @@ function toggleCycleOptions(){
   document.getElementById('cycleOptions').style.display=v==='cycle'?'block':'none';
 }
 
-// ===== SCRIPTS / SYNC tab =====
-async function runSync(target, btn){
-  const orig=btn.textContent; btn.disabled=true; btn.textContent='⏳ מריץ...';
-  try{
-    // יעד 'analytics' רץ בפרויקט הנפרד; שאר היעדים בפרויקט הראשי.
-    const url=(target==='analytics')?API_URL_ANALYTICS:API_URL;
-    const res=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain'},
-      body:JSON.stringify({action:'runSync', target, authPass:_adminPass})});
-    const d=await res.json();
-    btn.textContent=d.success?'✓ הורץ':'❌ שגיאה';
-    if(d.success) loadSyncStatus();
-  }catch(e){ btn.textContent='❌ שגיאה'; }
-  setTimeout(()=>{ btn.textContent=orig; btn.disabled=false; }, 2500);
-}
-async function loadSyncStatus(){
-  let d={};
-  // המצב מגיע משני פרויקטים: זמינות/הגדרות/אולמות/יומן מהראשי, אנליטיקה מהפרויקט הנפרד.
-  try{ d=await fetchAuthed('getSyncStatus'); }catch(e){}
-  try{ const dA=await fetchAuthed('getSyncStatus', API_URL_ANALYTICS); if(dA&&dA.analytics) d.analytics=dA.analytics; }catch(e){}
-  ['availability','settings','halls','analytics','calendar'].forEach(k=>{
-    const el=document.getElementById('last-'+k); if(!el) return;
-    el.textContent=d[k]?('הורץ לאחרונה: '+new Date(d[k]).toLocaleString('he-IL')):'טרם הורץ';
-  });
-  try{
-    const dR=await fetchAuthed('getDailyRuntime');
-    const el=document.getElementById('daily-runtime');
-    if(el) el.textContent=(dR&&typeof dR.seconds==='number')?(dR.seconds+' שניות מתוך 21,600 שניות (360 דק\')'):'אין נתון';
-  }catch(e){}
-  try{
-    const dRA=await fetchAuthed('getDailyRuntime', API_URL_ANALYTICS);
-    const elA=document.getElementById('daily-runtime-analytics');
-    if(elA) elA.textContent=(dRA&&typeof dRA.seconds==='number')?(dRA.seconds+' שניות מתוך 5,400 שניות (90 דק\')'):'אין נתון';
-  }catch(e){}
-}
-
 // Load all from server
 async function loadAll(){
   try{
-    const [r1,r2,r3]=await Promise.all([
-      fetch(API_URL+'?action=settings'),
-      fetch(API_URL+'?action=halls'),
-      fetch(API_URL)
+    const [r1,r2]=await Promise.all([
+      sb.from('settings').select('*'),
+      sb.from('halls').select('*')
     ]);
-    settings=r1.ok?await r1.json():{};
-    halls=r2.ok?await r2.json():[];
-    // If no halls in אולמות sheet, auto-populate from availability
+    if(r1.error) throw r1.error;
+    if(r2.error) throw r2.error;
+    settings={};
+    (r1.data||[]).forEach(row=>{settings[row.key]=row.value;});
+    halls=(r2.data||[]).map(h=>({
+      id:h.id, name:h.name||'', city:h.city||'', kashrut:h.kashrut||'', access:h.access||'',
+      seats:h.seats||'', desc:h.description||'', img:h.img||'', vid:h.vid||'',
+      links:h.links||[], images:h.images||[], customFields:h.custom_fields||[],
+      phone:h.phone||'', street:h.street||'', icalUrl:h.ical_url||''
+    }));
+    // If no halls in הטבלה, auto-populate from availability
     if(!halls.length){
-      const avail=r3.ok?await r3.json():[];
-      const names=[...new Set(avail.map(r=>r.hall))];
+      const {data:avail}=await sb.from('availability').select('hall_name').limit(1000);
+      const names=[...new Set((avail||[]).map(r=>r.hall_name))];
       halls=names.map(n=>({name:n,city:'',kashrut:'',access:'',seats:'',desc:'',img:'',vid:'',links:[]}));
     }
     applySettings();
@@ -885,6 +904,8 @@ function renderHalls(){
         <input type="text" value="${escHtml(h.street||'')}" onchange="upHall(${i},'street',this.value)"/>
         <label>טלפון</label>
         <input type="text" value="${escHtml(h.phone||'')}" placeholder="050-0000000" onchange="upHall(${i},'phone',this.value)"/>
+        <label>קישור יומן Google (iCal) — לסנכרון אוטומטי של זמינות</label>
+        <input type="url" value="${escHtml(h.icalUrl||'')}" placeholder="https://calendar.google.com/calendar/ical/.../basic.ics" onchange="upHall(${i},'icalUrl',this.value)"/>
         <label>כשרות</label>
         <input type="text" value="${escHtml(h.kashrut||'')}" onchange="upHall(${i},'kashrut',this.value)"/>
         <label>נגישות</label>
@@ -1248,6 +1269,65 @@ async function saveHiddenDates(){
   showOk('hiddenDatesOk');
 }
 
+// ===== AVAILABILITY MANUAL OVERRIDE =====
+function initAvailabilityTab(){
+  const sel=document.getElementById('availHallSelect');
+  sel.innerHTML=halls.map(h=>`<option value="${escHtml(h.name)}">${escHtml(h.name)}</option>`).join('');
+  if(!document.getElementById('availDateInput').value){
+    const t=new Date();
+    document.getElementById('availDateInput').value=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+  }
+  loadRecentAvailability();
+  sel.onchange=loadRecentAvailability;
+}
+
+async function saveManualAvailability(){
+  const hall=document.getElementById('availHallSelect').value;
+  const date=document.getElementById('availDateInput').value;
+  const status=document.getElementById('availStatusSelect').value;
+  const err=document.getElementById('availErr'); err.style.display='none';
+  if(!hall||!date){ err.textContent='יש לבחור אולם ותאריך'; err.style.display='block'; return; }
+  try{
+    // בודקים אם כבר קיימת שורה לתאריך הזה לאולם הזה — אם כן מעדכנים, אחרת מוסיפים
+    const {data:existing,error:selErr}=await sb.from('availability').select('id').eq('hall_name',hall).eq('date',date).limit(1);
+    if(selErr) throw selErr;
+    if(existing&&existing.length){
+      const {error}=await sb.from('availability').update({status}).eq('id',existing[0].id);
+      if(error) throw error;
+    }else{
+      const {error}=await sb.from('availability').insert({hall_name:hall,date,status});
+      if(error) throw error;
+    }
+    showOk('availOk');
+    loadRecentAvailability();
+  }catch(e){
+    err.textContent='שגיאה בעדכון: '+(e.message||e);
+    err.style.display='block';
+  }
+}
+
+async function loadRecentAvailability(){
+  const hall=document.getElementById('availHallSelect').value;
+  const list=document.getElementById('availRecentList');
+  if(!hall){ list.innerHTML=''; return; }
+  list.innerHTML='טוען...';
+  try{
+    const today=new Date();today.setHours(0,0,0,0);
+    const end=new Date(today.getTime()+30*864e5);
+    const toStr=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    const {data,error}=await sb.from('availability').select('date,status').eq('hall_name',hall).gte('date',toStr(today)).lte('date',toStr(end)).order('date',{ascending:true});
+    if(error) throw error;
+    if(!data||!data.length){ list.innerHTML='<span style="color:#999">אין נתוני זמינות לאולם זה בטווח הקרוב</span>'; return; }
+    list.innerHTML=data.map(r=>{
+      const color=r.status==='תפוס'?'#a32020':'#1a7a45';
+      const bg=r.status==='תפוס'?'#fde8e8':'#d4f5e4';
+      return `<div style="display:flex;justify-content:space-between;padding:4px 8px;border-bottom:1px solid #f0f0f0;"><span>${escHtml(r.date)}</span><span style="color:${color};background:${bg};border-radius:4px;padding:1px 8px;font-weight:700;font-size:0.78rem;">${escHtml(r.status)}</span></div>`;
+    }).join('');
+  }catch(e){
+    list.innerHTML='<span style="color:#a32020">שגיאה בטעינת הנתונים</span>';
+  }
+}
+
 function toggleHiddenDay(i,checked){
   if(checked){ if(!hiddenDays.includes(i)) hiddenDays.push(i); }
   else{ hiddenDays=hiddenDays.filter(d=>d!==i); }
@@ -1269,47 +1349,62 @@ async function changePass(){
   if(n.length<8){err.textContent='סיסמה חייבת 8 תווים לפחות';err.style.display='block';return;}
   if(n!==c){err.textContent='הסיסמאות אינן תואמות';err.style.display='block';return;}
   try{
-    if(!await verifyPass(o)){err.textContent='סיסמה נוכחית שגויה';err.style.display='block';return;}
-  }catch(e){err.textContent='שגיאה בבדיקת הסיסמה';err.style.display='block';return;}
-  await postData('settings',{adminPass:n});
-  _adminPass=n;
+    const {data:{user}}=await sb.auth.getUser();
+    if(!user||!user.email){err.textContent='שגיאה: לא נמצא משתמש מחובר';err.style.display='block';return;}
+    // מאמתים שהסיסמה הנוכחית נכונה ע"י ניסיון התחברות מחדש איתה
+    const {error:verifyErr}=await sb.auth.signInWithPassword({email:user.email,password:o});
+    if(verifyErr){err.textContent='סיסמה נוכחית שגויה';err.style.display='block';return;}
+    const {error:updateErr}=await sb.auth.updateUser({password:n});
+    if(updateErr){err.textContent='שגיאה בעדכון הסיסמה: '+updateErr.message;err.style.display='block';return;}
+  }catch(e){err.textContent='שגיאה בעדכון הסיסמה';err.style.display='block';return;}
   ['p0','p1','p2'].forEach(id=>document.getElementById(id).value='');
   showOk('passOk');
 }
 
-// ===== PASSWORD GATE =====
-const API_URL_GATE='https://script.google.com/macros/s/AKfycbylfK2AoCFcDCpvRWCS6DB3ciPL0VvzsrlNhtmhOxIuxW7v5LmI6Sic5vTvY37gae3mWQ/exec';
-
+// ===== PASSWORD GATE (Supabase Auth) =====
 async function checkGate(){
+  const email=document.getElementById('gateEmail').value.trim();
   const pass=document.getElementById('gatePass').value;
-  if(!pass) return;
+  const errEl=document.getElementById('gateErr');
+  errEl.style.display='none';
+  if(!email||!pass) return;
   try{
-    // Send password check via POST (body, not URL)
-    const res=await fetch(API_URL_GATE,{
-      method:'POST',
-      body:JSON.stringify({action:'checkPassword',pass}),
-      headers:{'Content-Type':'text/plain'}
-    });
-    const data=await res.json();
-    if(data.success){
-      _adminPass=pass;
-      document.getElementById('passwordGate').style.display='none';
-      document.getElementById('adminContent').style.display='block';
-      loadAll();
-    } else {
-      document.getElementById('gateErr').style.display='block';
-      document.getElementById('gatePass').value='';
-      document.getElementById('gatePass').focus();
-    }
+    const {data,error}=await sb.auth.signInWithPassword({email,password:pass});
+    if(error) throw error;
+    document.getElementById('passwordGate').style.display='none';
+    document.getElementById('adminContent').style.display='block';
+    loadAll();
   } catch(e){
     console.error('checkGate error:', e);
-    const msg = e && e.message ? e.message : String(e);
-    document.getElementById('gateErr').textContent = msg.includes('JSON') ? '❌ השרת החזיר תשובה לא תקינה — ודא שה-Apps Script פרוסס כ-"Anyone"' : '❌ שגיאת רשת: ' + msg;
-    document.getElementById('gateErr').style.display='block';
+    errEl.textContent = '❌ אימייל או סיסמה שגויים';
+    errEl.style.display='block';
+    document.getElementById('gatePass').value='';
+    document.getElementById('gatePass').focus();
   }
 }
 
-document.getElementById('gatePass').focus();
+async function logoutAdmin(){
+  try{ await sb.auth.signOut(); }catch(e){}
+  location.reload();
+}
+
+// בודקים אם כבר יש סשן מחובר (כניסה אוטומטית אם המשתמש כבר התחבר בעבר ולא התנתק)
+async function checkExistingSession(){
+  try{
+    const {data:{session}}=await sb.auth.getSession();
+    if(session){
+      document.getElementById('passwordGate').style.display='none';
+      document.getElementById('adminContent').style.display='block';
+      loadAll();
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+
+checkExistingSession().then(loggedIn=>{
+  if(!loggedIn) document.getElementById('gateEmail').focus();
+});
 
 </script>
 </body>
