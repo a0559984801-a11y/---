@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>יוצר סקריפט סנכרון אולמות</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        input[type="text"], input[type="email"] {
+            direction: ltr;
+        }
+
+        .hint {
+            color: #999;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-generate {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-generate:active {
+            transform: translateY(0);
+        }
+
+        .btn-reset {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-reset:hover {
+            background: #e0e0e0;
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .result.active {
+            display: block;
+        }
+
+        .result h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .script-preview {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .btn-download {
+            background: #4CAF50;
+            color: white;
+            width: 100%;
+        }
+
+        .btn-download:hover {
+            background: #45a049;
+        }
+
+        .success-message {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+
+        .error {
+            color: #d32f2f;
+            margin-top: 5px;
+            font-size: 12px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎪 יוצר סקריפט אולמות</h1>
+        <p class="subtitle">הזן פרטים וקבל סקריפט מוכן להעלאה לGoogle Apps Script</p>
+
+        <form id="hallForm">
+            <!-- שם אולם -->
+            <div class="form-group">
+                <label for="hallName">שם האולם *</label>
+                <input
+                    type="text"
+                    id="hallName"
+                    placeholder="למשל: אולם המלך"
+                    required
+                >
+                <div class="hint">זה יהיה שם העמודה בגיליון</div>
+                <div class="error" id="hallNameError"></div>
+            </div>
+
+            <!-- Calendar ID -->
+            <div class="form-group">
+                <label for="calendarId">Calendar ID *</label>
+                <input
+                    type="text"
+                    id="calendarId"
+                    placeholder="למשל: abc123@group.calendar.google.com"
+                    required
+                >
+                <div class="hint">מצא זאת בGoogle Calendar → הגדרות → שדה "Calendar ID"</div>
+                <div class="error" id="calendarIdError"></div>
+            </div>
+
+            <!-- שם גיליון -->
+            <div class="form-group">
+                <label for="sheetName">שם הגיליון (optional)</label>
+                <input
+                    type="text"
+                    id="sheetName"
+                    placeholder="default: זמינות"
+                    value="זמינות"
+                >
+                <div class="hint">אם הגיליון שלך נקרא בשם אחר</div>
+            </div>
+
+            <!-- כפתורים -->
+            <div class="button-group">
+                <button type="submit" class="btn-generate">צור סקריפט</button>
+                <button type="reset" class="btn-reset">נקה</button>
+            </div>
+        </form>
+
+        <!-- תוצאה -->
+        <div class="result" id="result">
+            <div class="success-message">
+                ✅ הסקריפט שלך מוכן! לחץ על "הורד קובץ" למטה
+            </div>
+
+            <h3>תצוגה מקדימה:</h3>
+            <div class="script-preview" id="scriptPreview"></div>
+
+            <button class="btn-download" onclick="downloadScript()">📥 הורד קובץ</button>
+        </div>
+    </div>
+
+    <script>
+        // טמפלט הסקריפט
+        const SCRIPT_TEMPLATE = `// ============================================================
+// סנכרון Google Calendar -> גיליון "{{SHEET_NAME}}" (עמודת "{{HALL_NAME}}")
+// ============================================================
+// יוצר: Hall Sync Generator
+// תאריך יצירה: {{DATE}}
+//
+// הוראות הפעלה:
+// 1. העתק את כל הקוד הזה
+// 2. עבור אל Google Apps Script Editor: https://script.google.com
+// 3. צור project חדש או בחר project קיים (חייב להיות קשור לגיליון Google Sheets)
+// 4. הדבק את הקוד לכרטיסייה code.gs
+// 5. לחץ על Save (Ctrl+S / Cmd+S)
+// 6. בחר בתפריט הנפתח את הפונקציה "setupScheduledSync" ולחץ על כפתור ▶ (Run)
+// 7. אשר הרשאות כשתתבקש
+// 8. סיימת! הסנכרון יתחיל כל דקה
+
+var CAL_ID = '{{CAL_ID}}';
+var CAL_SHEET_NAME = '{{SHEET_NAME}}';
+var CAL_HALL_HEADER = '{{HALL_NAME}}'; // שם האולם כפי שמופיע בשורת הכותרות בגיליון
+
+var BOOKED_KEYWORDS = ['חתונה', 'אירוע', 'הזמנה', 'תפוס'];
+var RESERVED_KEYWORDS = ['שמור', 'reserved', 'pending'];
+
+function syncCalendarToSheet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(CAL_SHEET_NAME);
+  if (!sheet) { Logger.log('לא נמצא גיליון "' + CAL_SHEET_NAME + '"'); return; }
+
+  var data = sheet.getDataRange().getValues();
+  var headers = data[0];
+  var hallCol = -1;
+  for (var c = 1; c < headers.length; c++) {
+    if (String(headers[c]).trim() === CAL_HALL_HEADER) { hallCol = c; break; }
+  }
+  if (hallCol === -1) { Logger.log('לא נמצאה עמודה בשם "' + CAL_HALL_HEADER + '"'); return; }
+
+  var tz = ss.getSpreadsheetTimeZone() || 'Asia/Jerusalem';
+  var cal = CalendarApp.getCalendarById(CAL_ID);
+  if (!cal) { Logger.log('לא נמצא יומן עם ה-ID שצוין'); return; }
+
+  var rowDates = [];
+  var minDate = null, maxDate = null;
+  for (var i = 1; i < data.length; i++) {
+    var dateVal = data[i][0];
+    if (!dateVal) continue;
+    var dateObj = parseRowDate_(dateVal);
+    if (!dateObj || isNaN(dateObj.getTime())) continue;
+    rowDates.push({ idx: i, date: dateObj });
+    if (!minDate || dateObj < minDate) minDate = dateObj;
+    if (!maxDate || dateObj > maxDate) maxDate = dateObj;
+  }
+  if (!minDate) { Logger.log('לא נמצאו תאריכים תקינים בגיליון'); return; }
+
+  var rangeStart = new Date(Utilities.formatDate(minDate, tz, 'yyyy/MM/dd') + ' 00:00:00');
+  var rangeEnd = new Date(Utilities.formatDate(maxDate, tz, 'yyyy/MM/dd') + ' 00:00:00');
+  rangeEnd = new Date(rangeEnd.getTime() + 24 * 60 * 60 * 1000);
+
+  var allEvents = cal.getEvents(rangeStart, rangeEnd);
+
+  var statusByDay = {};
+  allEvents.forEach(function(ev) {
+    var title = (ev.getTitle() || '').toLowerCase();
+    var isBooked = matchesKeyword_(title, BOOKED_KEYWORDS);
+    var isReserved = matchesKeyword_(title, RESERVED_KEYWORDS);
+    if (!isBooked && !isReserved) return;
+
+    var evStart = new Date(Utilities.formatDate(ev.getStartTime(), tz, 'yyyy/MM/dd') + ' 00:00:00');
+    var evEndRaw = ev.getEndTime();
+    if (ev.isAllDayEvent()) evEndRaw = new Date(evEndRaw.getTime() - 1000);
+    var evEnd = new Date(Utilities.formatDate(evEndRaw, tz, 'yyyy/MM/dd') + ' 00:00:00');
+
+    for (var t = evStart.getTime(); t <= evEnd.getTime(); t += 24 * 60 * 60 * 1000) {
+      var key = Utilities.formatDate(new Date(t), tz, 'yyyy/MM/dd');
+      if (isBooked) statusByDay[key] = 'תפוס';
+      else if (isReserved && statusByDay[key] !== 'תפוס') statusByDay[key] = 'שמור';
+    }
+  });
+
+  var updates = [];
+  rowDates.forEach(function(rd) {
+    var key = Utilities.formatDate(rd.date, tz, 'yyyy/MM/dd');
+    var status = statusByDay[key] || 'פנוי';
+    var current = data[rd.idx][hallCol];
+    if (current !== status) updates.push({ row: rd.idx + 1, value: status });
+  });
+
+  updates.forEach(function(u) {
+    sheet.getRange(u.row, hallCol + 1).setValue(u.value);
+  });
+
+  if (updates.length > 0) {
+    try { cacheClear('availability'); } catch (e) {}
+  }
+
+  Logger.log('סנכרון הסתיים. נבדקו ' + rowDates.length + ' שורות, עודכנו ' + updates.length + '.');
+}
+
+function matchesKeyword_(text, keywords) {
+  for (var k = 0; k < keywords.length; k++) {
+    if (text.indexOf(keywords[k].toLowerCase()) > -1) return true;
+  }
+  return false;
+}
+
+function parseRowDate_(dateVal) {
+  var isDateObj = dateVal && (Object.prototype.toString.call(dateVal) === '[object Date]' || typeof dateVal.getFullYear === 'function');
+  if (isDateObj) return dateVal;
+
+  var s = String(dateVal);
+  if (s.indexOf('/') > -1) {
+    var p = s.split('/');
+    return new Date(+p[2], +p[1] - 1, +p[0]);
+  }
+  if (s.indexOf('-') > -1) {
+    var q = s.split('-');
+    return new Date(+q[0], +q[1] - 1, +q[2]);
+  }
+  return null;
+}
+
+function setupScheduledSync() {
+  var triggers = ScriptApp.getProjectTriggers();
+  triggers.forEach(function(t) {
+    if (t.getHandlerFunction() === 'syncCalendarToSheet') ScriptApp.deleteTrigger(t);
+  });
+
+  ScriptApp.newTrigger('syncCalendarToSheet')
+    .timeBased()
+    .everyMinutes(1)
+    .create();
+
+  Logger.log('טריגר הוגדר בהצלחה - סנכרון כל דקה');
+}
+
+function testSync() {
+  syncCalendarToSheet();
+  Logger.log('בדיקה הסתיימה - בדוק את הגיליון ואת הלוג מעל');
+}`;
+
+        // נתונים גלובליים
+        let generatedScript = '';
+
+        // שליחת הטופס
+        document.getElementById('hallForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            generateScript();
+        });
+
+        function generateScript() {
+            // קבל את הערכים
+            const hallName = document.getElementById('hallName').value.trim();
+            const calendarId = document.getElementById('calendarId').value.trim();
+            const sheetName = document.getElementById('sheetName').value.trim() || 'זמינות';
+
+            // ווליד
+            if (!hallName) {
+                showError('hallNameError', 'אנא הזן שם אולם');
+                return;
+            }
+
+            if (!calendarId) {
+                showError('calendarIdError', 'אנא הזן Calendar ID');
+                return;
+            }
+
+            if (!calendarId.includes('@')) {
+                showError('calendarIdError', 'Calendar ID לא תקין - צריך להכיל @');
+                return;
+            }
+
+            // נקה שגיאות
+            clearErrors();
+
+            // צור את התאריך
+            const today = new Date();
+            const dateStr = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
+
+            // החלף את התבניות
+            generatedScript = SCRIPT_TEMPLATE
+                .replace(/{{HALL_NAME}}/g, hallName)
+                .replace(/{{CAL_ID}}/g, calendarId)
+                .replace(/{{SHEET_NAME}}/g, sheetName)
+                .replace(/{{DATE}}/g, dateStr);
+
+            // הצג את התוצאה
+            document.getElementById('scriptPreview').textContent = generatedScript;
+            document.getElementById('result').classList.add('active');
+
+            // גלול לתוצאה
+            setTimeout(() => {
+                document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        }
+
+        function downloadScript() {
+            if (!generatedScript) {
+                alert('אנא צור סקריפט קודם');
+                return;
+            }
+
+            const hallName = document.getElementById('hallName').value.trim();
+            const filename = `hall-sync-${hallName}.gs`;
+
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(generatedScript));
+            element.setAttribute('download', filename);
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+
+        function showError(elementId, message) {
+            const errorEl = document.getElementById(elementId);
+            errorEl.textContent = message;
+            errorEl.classList.add('show');
+        }
+
+        function clearErrors() {
+            document.querySelectorAll('.error').forEach(el => {
+                el.classList.remove('show');
+                el.textContent = '';
+            });
+        }
+    </script>
+</body>
+</html>

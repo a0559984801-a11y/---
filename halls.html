@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https: data: blob:; media-src 'self' https:; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com; frame-src 'none'; object-src 'none'; base-uri 'self';">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://script.google.com">
+<link rel="dns-prefetch" href="https://www.googletagmanager.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap">
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
+gtag('consent','default',{'analytics_storage':'denied','ad_storage':'denied'});
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-H8MXTNM0HY"></script>
+<script>gtag('js',new Date());gtag('config','G-H8MXTNM0HY');</script>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="apple-touch-icon" href="favicon.png">
+<meta name="description" content="מידע מפורט על אולמות חתונה - כתובות, כשרות, נגישות, קיבולת מקומות ותמונות. כל הפרטים שצריך לבחירת האולם המתאים.">
+<link rel="canonical" href="https://xn----zhceowpcf6gc.xn--4dbrk0ce/halls.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="מידע על אולמות חתונה">
+<meta property="og:description" content="כתובות, כשרות, נגישות ותמונות של אולמות החתונה.">
+<meta property="og:locale" content="he_IL">
+<title>מידע על אולמות</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Rubik',sans-serif;background:#f7f5f0;min-height:100vh;}
+header{background:#1a1a2e;color:white;padding:12px 20px;display:flex;align-items:center;gap:16px;}
+.btn-back{padding:6px 14px;background:#e8b86d;color:#1a1a2e;border:none;border-radius:6px;cursor:pointer;font-family:'Rubik',sans-serif;font-weight:700;font-size:0.82rem;text-decoration:none;}
+header h1{font-size:1.1rem;font-weight:700;}
+.content{padding:20px;max-width:960px;margin:0 auto;}
+
+/* View Controls */
+.view-controls{display:flex;gap:8px;margin-bottom:14px;justify-content:center;}
+.view-btn{padding:8px 16px;border:1px solid #ddd;border-radius:6px;background:white;cursor:pointer;font-family:'Rubik',sans-serif;font-size:0.85rem;color:#555;font-weight:600;transition:all 0.2s;}
+.view-btn:hover{background:#f7f5f0;border-color:#1a1a2e;}
+.view-btn.active{background:#1a1a2e;color:white;border-color:#1a1a2e;}
+
+/* Grid Layouts */
+.halls-grid.grid-large{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));}
+.halls-grid.grid-small{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));}
+.halls-grid.list-view{grid-template-columns:1fr;gap:8px;}
+.halls-grid.list-view .hall-card{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 18px;min-height:70px;border:none;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.15);position:relative;overflow:hidden;background-size:cover;background-position:center;gap:10px;}
+.halls-grid.list-view .hall-card::before{content:'';position:absolute;top:0;right:0;bottom:0;left:0;background:rgba(255,255,255,0.78);z-index:0;}
+.halls-grid.list-view .hall-card:hover::before{background:rgba(255,255,255,0.65);}
+.halls-grid.list-view .hall-card .list-thumb,.halls-grid.list-view .hall-card .list-thumb-empty{display:none;}
+.halls-grid.list-view .hall-card-info{display:none;}
+.halls-grid.list-view .hall-card h3{display:none;}
+.halls-grid.list-view .hall-card p{display:none;}
+.halls-grid.list-view .hall-card > *{position:relative;z-index:1;}
+.halls-grid.list-view .hall-card .hall-name-text{font-weight:700;font-size:1rem;color:#1a1a2e;text-align:right;text-shadow:0 1px 4px rgba(255,255,255,0.9);}
+.halls-grid.list-view .hall-card .list-details-btn{font-size:0.78rem;color:#1a1a2e;background:#e8b86d;padding:6px 14px;border-radius:6px;white-space:nowrap;text-align:center;font-weight:700;flex-shrink:0;}
+.halls-grid.list-view .hall-card .hall-city-text{font-size:0.85rem;color:#444;text-align:left;font-weight:600;text-shadow:0 1px 3px rgba(255,255,255,0.9);min-width:80px;}
+
+.halls-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;}
+.hall-card{background:white;border-radius:10px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.08);cursor:pointer;transition:box-shadow 0.2s;border:2px solid transparent;}
+.hall-card:hover{box-shadow:0 4px 16px rgba(0,0,0,0.14);border-color:#1a1a2e;}
+.hall-card h3{font-size:0.95rem;font-weight:700;color:#1a1a2e;margin-bottom:6px;}
+.hall-card p{font-size:0.78rem;color:#888;}
+.hall-card img{width:100%;height:100px;object-fit:cover;border-radius:6px;margin-bottom:8px;}
+.empty-state{text-align:center;padding:40px;color:#888;grid-column:1/-1;}
+
+/* Grid views with background image */
+.halls-grid.grid-large .hall-card,.halls-grid.grid-small .hall-card{position:relative;overflow:hidden;background-size:cover;background-position:center;min-height:120px;display:flex;flex-direction:column;justify-content:center;text-align:center;}
+.halls-grid.grid-large .hall-card::before,.halls-grid.grid-small .hall-card::before{content:'';position:absolute;top:0;right:0;bottom:0;left:0;background:rgba(255,255,255,0.78);z-index:0;}
+.halls-grid.grid-large .hall-card:hover::before,.halls-grid.grid-small .hall-card:hover::before{background:rgba(255,255,255,0.65);}
+.halls-grid.grid-large .hall-card > *,.halls-grid.grid-small .hall-card > *{position:relative;z-index:1;}
+.halls-grid.grid-large .hall-card img,.halls-grid.grid-small .hall-card img{display:none;}
+.halls-grid.grid-large .hall-card h3,.halls-grid.grid-small .hall-card h3{text-shadow:0 1px 4px rgba(255,255,255,0.9);}
+.halls-grid.grid-large .hall-card p,.halls-grid.grid-small .hall-card p{color:#444;text-shadow:0 1px 3px rgba(255,255,255,0.9);}
+
+/* Modal Overlay */
+.modal-overlay{display:none;position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,0.45);z-index:2000;align-items:center;justify-content:center;padding:16px;}
+.modal-overlay.open{display:flex !important;}
+
+/* Main Modal — image dominates, narrow info sidebar, near full-screen */
+.modal{background:white;border-radius:15px;width:100%;max-width:1280px;height:90vh;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;position:relative;box-shadow:0 10px 40px rgba(0,0,0,0.3);}
+.modal-close{position:fixed;top:24px;right:24px;background:white;color:#1a1a2e;border:none;width:46px;height:46px;border-radius:50%;font-size:1.4rem;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2100;box-shadow:0 4px 16px rgba(0,0,0,0.3);}
+.modal-close:hover{background:#f0ece4;}
+
+/* Header with counter background */
+.modal-header{text-align:center;padding:14px 20px 10px;border-bottom:1px solid #f0ece4;position:relative;overflow:hidden;flex-shrink:0;}
+.modal-header::before{content:'';position:absolute;top:0;right:0;bottom:0;left:0;opacity:0.03;background-image:linear-gradient(45deg,#1a1a2e 25%,transparent 25%,transparent 75%,#1a1a2e 75%,#1a1a2e);background-size:40px 40px;z-index:0;}
+.modal-header h2{font-size:1.3rem;font-weight:700;color:#1a1a2e;position:relative;z-index:1;}
+
+.modal-body{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:row;}
+@media(max-width:700px){.modal-body{flex-direction:column;overflow-y:auto;}}
+
+/* Image Gallery — dominates the modal */
+.gallery-container{position:relative;background:#f7f5f0;flex:1 1 auto;min-width:0;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.gallery-image{width:100%;height:100%;object-fit:contain;cursor:pointer;}
+@media(max-width:700px){.gallery-image{max-height:300px;}}
+.gallery-nav{position:absolute;top:50%;width:100%;display:flex;justify-content:space-between;align-items:center;transform:translateY(-50%);padding:0 20px;z-index:2;}
+.gallery-btn{background:rgba(255,255,255,0.85);color:#1a1a2e;border:none;width:46px;height:46px;border-radius:50%;cursor:pointer;font-size:1.3rem;display:flex;align-items:center;justify-content:center;transition:background 0.2s;box-shadow:0 2px 10px rgba(0,0,0,0.15);}
+.gallery-btn:hover{background:white;}
+.gallery-btn:disabled{opacity:0.3;cursor:not-allowed;}
+.gallery-dots{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.5);color:white;padding:5px 14px;border-radius:14px;font-size:0.8rem;}
+
+/* Modal Content — narrow info sidebar */
+.modal-content{flex:0 0 300px;min-width:260px;max-width:340px;overflow-y:auto;padding:20px;background:white;}
+@media(max-width:700px){.modal-content{flex:0 0 auto;max-width:none;}}
+
+/* Field Row */
+.field-row{display:flex;flex-direction:column;gap:2px;padding:9px 0;}
+.field-label{font-weight:700;color:#555;font-size:0.82rem;}
+.field-value{color:#333;font-size:0.92rem;word-break:break-word;line-height:1.4;}
+.field-value a{color:#1a1a2e;text-decoration:underline;}
+
+/* Search Bar */
+.search-bar{margin-bottom:14px;}
+.search-bar input{width:100%;padding:9px 14px;border:1px solid #ddd;border-radius:8px;font-family:'Rubik',sans-serif;font-size:0.88rem;background:white;}
+
+@media(max-width:700px){
+  #btnList{display:none;}
+  .desktop-label{display:none;}
+  .mobile-label{display:inline;}
+}
+@media(min-width:701px){
+  .desktop-label{display:inline;}
+  .mobile-label{display:none;}
+}
+/* Cookie consent modal (one-time) */
+#cookieBanner{display:none;position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,0.55);z-index:4000;align-items:center;justify-content:center;padding:16px;}
+#cookieBanner.show{display:flex;}
+#cookieBannerBox{background:white;color:#1a1a2e;border-radius:14px;padding:26px 24px;max-width:420px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,0.3);font-size:0.85rem;line-height:1.6;text-align:center;}
+#cookieBannerBox h3{font-size:1.15rem;margin-bottom:10px;color:#1a1a2e;}
+#cookieBannerBox a{color:#1a1a2e;text-decoration:underline;font-weight:600;}
+.cookie-btns{display:flex;gap:8px;margin-top:16px;}
+.cookie-btn{flex:1;padding:10px;border:none;border-radius:7px;cursor:pointer;font-family:'Rubik',sans-serif;font-weight:700;font-size:0.82rem;}
+.cookie-btn.accept{background:#1a1a2e;color:#e8b86d;}
+.cookie-btn.accept:hover{background:#2a2a4e;}
+.cookie-btn.decline{background:#eee;color:#444;}
+.cookie-btn.decline:hover{background:#e2e2e2;}
+</style>
+</head>
+<body>
+<!-- Cookie consent modal (one-time) -->
+<div id="cookieBanner">
+  <div id="cookieBannerBox">
+    <h3>🍪 שימוש בעוגיות</h3>
+    האתר משתמש בעוגיות (קוקיז) לצורך ניתוח שימוש בלבד (Google Analytics).
+    <a href="privacy.html" target="_blank" rel="noopener">למדיניות הפרטיות</a>
+    <div class="cookie-btns">
+      <button class="cookie-btn accept" onclick="cookieConsentChoice(true)">מאשר/ת</button>
+      <button class="cookie-btn decline" onclick="cookieConsentChoice(false)">דוחה</button>
+    </div>
+  </div>
+</div>
+<header>
+  <a href="index.html" class="btn-back">← חזרה</a>
+  <h1>מידע על אולמות חתונה</h1>
+</header>
+<div class="content">
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="🔍 חפש אולם לפי שם, עיר, כשרות..." oninput="filterHalls(this.value)"/>
+  </div>
+  
+  <!-- View Toggle -->
+  <div class="view-controls" id="viewControls">
+    <button class="view-btn" id="btnList" onclick="setView('list-view')">📋 רשימה</button>
+    <button class="view-btn active" id="btnGridLarge" onclick="setView('grid-large')"><span class="desktop-label">⊞ רשת גדולה</span><span class="mobile-label">⊞ רשימה</span></button>
+    <button class="view-btn" id="btnGridSmall" onclick="setView('grid-small')"><span class="desktop-label">⊟ רשת קטנה</span><span class="mobile-label">⊟ רשת</span></button>
+  </div>
+  
+  <div class="halls-grid" id="hallsGrid">
+    <div class="empty-state">טוען...</div>
+  </div>
+</div>
+
+<!-- Main Modal: image + info shown together -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-header">
+      <h2 id="modalTitle"></h2>
+    </div>
+    <div class="modal-body">
+      <div class="gallery-container" id="galleryContainer" style="display:none;">
+        <img id="galleryImage" class="gallery-image"/>
+        <div class="gallery-nav" id="galleryNav" style="display:none;">
+          <button class="gallery-btn" id="galleryPrev" onclick="prevImage()">‹</button>
+          <button class="gallery-btn" id="galleryNext" onclick="nextImage()">›</button>
+        </div>
+        <div class="gallery-dots" id="galleryDots"></div>
+      </div>
+      <div class="modal-content">
+        <div id="modalFields"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_URL='https://script.google.com/macros/s/AKfycbylfK2AoCFcDCpvRWCS6DB3ciPL0VvzsrlNhtmhOxIuxW7v5LmI6Sic5vTvY37gae3mWQ/exec';
+const API_URL_ANALYTICS='https://script.google.com/macros/s/AKfycbzXg5HsiZfBbcYgrfViOppPeT1v-nyn-pWI5a1ahNliMpzNmdAvvJqNnkGuNyW5y6FZ/exec';
+const DEFAULT_IMG='https://res.cloudinary.com/df8cqjeu6/image/upload/v1781481615/Gemini_Generated_Image_lhtutylhtutylhtu_kddlrl.png';
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function sendBeacon(url){
+  // fetch עם keepalive — לא חוסם את הדף, עובד גם בעת ניווט החוצה.
+  // לא משתמשים ב-<img> כי onerror תמיד נורה על תגובת JSON (לא תמונה),
+  // מה שגרם ל-retry אוטומטי וכפילות ברשומות.
+  try{fetch(url,{method:'GET',keepalive:true,cache:'no-store'});}catch(e){}
+}
+// Log visit to Google Sheets (fire and forget, never blocks the page)
+// A randomized delay staggers this away from the page's own data fetch
+// (which also hits the same Apps Script deployment), reducing 503s.
+function logVisit(page){
+  try{
+    const device=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)?'mobile':'desktop';
+    const url=API_URL_ANALYTICS+'?action=logVisit&page='+encodeURIComponent(page)+'&device='+device+'&t='+Date.now();
+    setTimeout(()=>sendBeacon(url),500+Math.random()*1000);
+  }catch(e){}
+}
+function logHallView(name){
+  try{
+    const device=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)?'mobile':'desktop';
+    const url=API_URL_ANALYTICS+'?action=logHallView&hall='+encodeURIComponent(name)+'&device='+device+'&t='+Date.now();
+    sendBeacon(url);
+  }catch(e){}
+}
+let halls=[],currentHall=null,currentImageIndex=0,currentView='grid-large';
+
+function applyHallOrder(list, settings){
+  try{
+    const order=JSON.parse((settings&&settings.hallOrder)||'[]');
+    if(!order.length) return list;
+    return [...list].sort((a,b)=>{
+      const ai=order.indexOf(a.name), bi=order.indexOf(b.name);
+      return (ai===-1?9999:ai)-(bi===-1?9999:bi);
+    });
+  }catch(e){ return list; }
+}
+
+const HALLS_CACHE_KEY='hallsPageCacheV1';
+
+async function loadHalls(){
+  // 1) Instant render from cache
+  let renderedFromCache=false, cachedRaw=null;
+  try{
+    cachedRaw=localStorage.getItem(HALLS_CACHE_KEY);
+    if(cachedRaw){
+      const c=JSON.parse(cachedRaw);
+      halls=applyHallOrder(c.halls||[],c.settings||{});
+      if(halls.length){renderGrid();renderedFromCache=true;}
+    }
+  }catch(e){}
+  // 2) Refresh from network
+  try{
+    const [r1,r2]=await Promise.all([fetch(API_URL+'?action=halls'),fetch(API_URL+'?action=settings')]);
+    const rawHalls=(await r1.json()).filter(h=>h.name);
+    const settings=r2.ok?await r2.json():{};
+    const fresh=JSON.stringify({halls:rawHalls,settings});
+    // Data unchanged since cache render → skip the second render
+    if(renderedFromCache&&cachedRaw===fresh) return;
+    halls=applyHallOrder(rawHalls, settings);
+    renderGrid();
+    try{localStorage.setItem(HALLS_CACHE_KEY,fresh);}catch(e){}
+  }catch(e){
+    if(!renderedFromCache) document.getElementById('hallsGrid').innerHTML='<div class="empty-state">שגיאה בטעינה. נסה לרענן.</div>';
+  }
+}
+
+function filterHalls(q){
+  const term=q.trim().toLowerCase();
+  const filtered=!term ? halls : halls.filter(h=>
+    (h.name||'').toLowerCase().includes(term)||
+    (h.city||'').toLowerCase().includes(term)||
+    (h.kashrut||'').toLowerCase().includes(term)
+  );
+  renderGrid(filtered);
+}
+
+function renderGrid(list){
+  list=list||halls;
+  const grid=document.getElementById('hallsGrid');
+  if(!halls.length){
+    grid.innerHTML='<div class="empty-state">אין פרטי אולמות עדיין</div>';
+    return;
+  }
+  if(!list.length){
+    grid.innerHTML='<div class="empty-state">לא נמצאו אולמות</div>';
+    return;
+  }
+  
+  // Set grid class based on view
+  grid.className='halls-grid '+currentView;
+  
+  grid.innerHTML=list.map((h,i)=>{
+    const hallIndex=halls.findIndex(hh=>hh.name===h.name);
+    const isListView=currentView==='list-view';
+    const isGrid=currentView==='grid-large'||currentView==='grid-small';
+    const nm=escHtml(h.name),ct=escHtml(h.city||''),im=escHtml(h.img||DEFAULT_IMG);
+    return `
+    <div class="hall-card" data-index="${hallIndex}" data-name="${nm}" data-city="${ct}"${(isListView||isGrid)?` style="background-image:url('${im}')"`:''}>
+      ${!isListView&&h.img?`<img src="${escHtml(h.img)}" alt="${nm}" loading="lazy" decoding="async"/>`:''}
+      ${isListView?`<span class="hall-name-text">${nm}</span>`:''}
+      <div${isListView?' class="hall-card-info"':''}>
+        ${!isListView?`<h3>${nm}</h3>`:''}
+        ${!isListView?`<p>${h.desc?escHtml(h.desc.substring(0,60))+'...':'לחץ לפרטים'}</p>`:''}
+        ${!isListView&&h.city?`<p style="margin-top:4px;font-size:0.72rem;color:#aaa">📍 ${ct}</p>`:''}
+      </div>
+      ${isListView?`<span class="list-details-btn">לחץ לפרטים</span>`:''}
+      ${isListView?`<span class="hall-city-text">${h.city?'📍 '+ct:''}</span>`:''}
+    </div>
+  `;}).join('');
+
+  // Attach click handlers via event delegation (more reliable than inline onclick)
+  grid.querySelectorAll('.hall-card').forEach(card=>{
+    card.addEventListener('click',function(){
+      const idx=parseInt(this.getAttribute('data-index'));
+      openModal(idx);
+    });
+  });
+}
+
+function setView(view){
+  currentView=view;
+  // Update button states
+  document.getElementById('btnList').classList.toggle('active',view==='list-view');
+  document.getElementById('btnGridLarge').classList.toggle('active',view==='grid-large');
+  document.getElementById('btnGridSmall').classList.toggle('active',view==='grid-small');
+  // Re-render grid
+  renderGrid();
+}
+
+function openModal(i){
+  if(i<0 || !halls[i]) return;
+  currentHall=halls[i];
+  currentImageIndex=0;
+  logHallView(currentHall.name);
+
+  document.getElementById('modalTitle').textContent=currentHall.name;
+
+  // Gallery - combine main img + images array
+  let imgArr=currentHall.images;
+  if(typeof imgArr==='string') imgArr=imgArr.split('|');
+  if(!Array.isArray(imgArr)) imgArr=[];
+  const images=[currentHall.img,...imgArr].filter(img=>img && (''+img).trim());
+  const galleryContainer=document.getElementById('galleryContainer');
+  if(images.length){
+    document.getElementById('galleryImage').src=images[0];
+    galleryContainer.style.display='block';
+    currentHall._imgArr=images;
+    updateGalleryUI(images);
+  } else {
+    galleryContainer.style.display='none';
+    currentHall._imgArr=[];
+  }
+
+  // Fields
+  const fields=document.getElementById('modalFields');
+  const rows=[];
+  if(currentHall.city) rows.push(['📍 עיר',escHtml(currentHall.city)]);
+  if(currentHall.street) rows.push(['🏘️ רחוב',escHtml(currentHall.street)]);
+  if(currentHall.phone) rows.push(['📞 טלפון',`<a href="tel:${escHtml(currentHall.phone)}">${escHtml(currentHall.phone)}</a>`]);
+  if(currentHall.kashrut) rows.push(['✡️ כשרות',escHtml(currentHall.kashrut)]);
+  if(currentHall.seats) rows.push(['👥 מקומות',escHtml(String(currentHall.seats))]);
+  if(currentHall.access) rows.push(['♿ נגישות',escHtml(currentHall.access)]);
+  if(currentHall.desc) rows.push(['תיאור',escHtml(currentHall.desc)]);
+  if(currentHall.links && currentHall.links.length){
+    rows.push(['קישורים',(currentHall.links||[]).map(l=>`<a href="${escHtml(l.url)}" target="_blank" rel="noopener">${escHtml(l.label||l.url)}</a>`).join(' ')]);
+  }
+  // Custom fields
+  if(currentHall.customFields && currentHall.customFields.length){
+    currentHall.customFields.filter(f=>f.label && f.value).forEach(f=>{
+      const val=f.type==='link'?`<a href="${escHtml(f.value)}" target="_blank" rel="noopener" style="display:inline-block;padding:4px 14px;background:#1a1a2e;color:white;border-radius:5px;text-decoration:none;font-size:0.8rem;font-weight:600;">קישור ↗</a>`:escHtml(f.value);
+      rows.push([escHtml(f.label),val]);
+    });
+  }
+
+  fields.innerHTML=rows.map(([label,val])=>`
+    <div class="field-row">
+      <span class="field-label">${label}:</span>
+      <span class="field-value">${val}</span>
+    </div>
+  `).join('');
+
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function updateGalleryUI(images){
+  document.getElementById('galleryNav').style.display=images.length>1?'flex':'none';
+  document.getElementById('galleryPrev').disabled=currentImageIndex===0;
+  document.getElementById('galleryNext').disabled=currentImageIndex===images.length-1;
+  document.getElementById('galleryDots').textContent=images.length>1?`${currentImageIndex+1} / ${images.length}`:'';
+}
+
+function prevImage(){
+  const images=currentHall._imgArr||[];
+  if(currentImageIndex>0){
+    currentImageIndex--;
+    document.getElementById('galleryImage').src=images[currentImageIndex];
+    updateGalleryUI(images);
+  }
+}
+
+function nextImage(){
+  const images=currentHall._imgArr||[];
+  if(currentImageIndex<images.length-1){
+    currentImageIndex++;
+    document.getElementById('galleryImage').src=images[currentImageIndex];
+    updateGalleryUI(images);
+  }
+}
+
+function closeModal(e){
+  if(!e || e.target===document.getElementById('modalOverlay'))
+    document.getElementById('modalOverlay').classList.remove('open');
+}
+
+function cookieConsentChoice(accepted){
+  try{localStorage.setItem('cookieConsent',accepted?'granted':'denied');}catch(e){}
+  if(accepted&&typeof gtag==='function'){
+    gtag('consent','update',{'analytics_storage':'granted','ad_storage':'granted'});
+  }
+  document.getElementById('cookieBanner').classList.remove('show');
+}
+(function initCookieBanner(){
+  let saved=null;
+  try{saved=localStorage.getItem('cookieConsent');}catch(e){}
+  if(saved==='granted'){
+    if(typeof gtag==='function') gtag('consent','update',{'analytics_storage':'granted','ad_storage':'granted'});
+    return;
+  }
+  if(saved==='denied') return;
+  document.getElementById('cookieBanner').classList.add('show');
+})();
+
+loadHalls();
+// logVisit ו-logDuration הושבתו כדי לחסוך במכסת הרצות (360 דק'/יום).
+</script>
+</body>
+</html>
