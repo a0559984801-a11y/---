@@ -2,12 +2,12 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https: data: blob:; media-src 'self' https:; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com; frame-src 'none'; object-src 'none'; base-uri 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https: data: blob:; media-src 'self' https:; connect-src 'self' https://mzrnwtwyuligsaxeoxhh.supabase.co https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com; frame-src 'none'; object-src 'none'; base-uri 'self';">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preconnect" href="https://script.google.com">
+<link rel="preconnect" href="https://mzrnwtwyuligsaxeoxhh.supabase.co">
 <link rel="dns-prefetch" href="https://www.googletagmanager.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap">
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
@@ -18,7 +18,8 @@ gtag('consent','default',{'analytics_storage':'denied','ad_storage':'denied'});
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="apple-touch-icon" href="favicon.png">
 <meta name="description" content="מידע מפורט על אולמות חתונה - כתובות, כשרות, נגישות, קיבולת מקומות ותמונות. כל הפרטים שצריך לבחירת האולם המתאים.">
-<link rel="canonical" href="https://xn----zhceowpcf6gc.xn--4dbrk0ce/halls.html">
+<!-- TODO: יש לעדכן את כתובת ה-canonical לכתובת המלאה ברגע שיש דומיין סופי למיזם -->
+<link rel="canonical" href="halls.html">
 <meta property="og:type" content="website">
 <meta property="og:title" content="מידע על אולמות חתונה">
 <meta property="og:description" content="כתובות, כשרות, נגישות ותמונות של אולמות החתונה.">
@@ -192,32 +193,32 @@ header h1{font-size:1.1rem;font-weight:700;}
   </div>
 </div>
 
+<script src="supabase.min.js"></script>
 <script>
-const API_URL='https://script.google.com/macros/s/AKfycbylfK2AoCFcDCpvRWCS6DB3ciPL0VvzsrlNhtmhOxIuxW7v5LmI6Sic5vTvY37gae3mWQ/exec';
-const API_URL_ANALYTICS='https://script.google.com/macros/s/AKfycbzXg5HsiZfBbcYgrfViOppPeT1v-nyn-pWI5a1ahNliMpzNmdAvvJqNnkGuNyW5y6FZ/exec';
+// חיבור ל-Supabase (מסד הנתונים החדש של המיזם)
+const SUPABASE_URL='https://mzrnwtwyuligsaxeoxhh.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16cm53dHd5dWxpZ3NheGVveGhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MDExMDUsImV4cCI6MjA5ODM3NzEwNX0.1zJKrl4iJtWcv46h8pmiub0u2BoiIGapWmZuDJjLNKs';
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 const DEFAULT_IMG='https://res.cloudinary.com/df8cqjeu6/image/upload/v1781481615/Gemini_Generated_Image_lhtutylhtutylhtu_kddlrl.png';
 function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function sendBeacon(url){
-  // fetch עם keepalive — לא חוסם את הדף, עובד גם בעת ניווט החוצה.
-  // לא משתמשים ב-<img> כי onerror תמיד נורה על תגובת JSON (לא תמונה),
-  // מה שגרם ל-retry אוטומטי וכפילות ברשומות.
-  try{fetch(url,{method:'GET',keepalive:true,cache:'no-store'});}catch(e){}
+function nowParts(){
+  const d=new Date();
+  const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
+  return {log_date:`${y}-${m}-${day}`, log_time:d.toTimeString().slice(0,8)};
 }
-// Log visit to Google Sheets (fire and forget, never blocks the page)
-// A randomized delay staggers this away from the page's own data fetch
-// (which also hits the same Apps Script deployment), reducing 503s.
+// רישום ביקור/צפייה ל-Supabase (fire and forget, אף פעם לא חוסם את הדף)
 function logVisit(page){
   try{
     const device=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)?'mobile':'desktop';
-    const url=API_URL_ANALYTICS+'?action=logVisit&page='+encodeURIComponent(page)+'&device='+device+'&t='+Date.now();
-    setTimeout(()=>sendBeacon(url),500+Math.random()*1000);
+    const {log_date,log_time}=nowParts();
+    sb.from('analytics_log').insert({log_date,log_time,device,page}).then(()=>{});
   }catch(e){}
 }
 function logHallView(name){
   try{
     const device=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)?'mobile':'desktop';
-    const url=API_URL_ANALYTICS+'?action=logHallView&hall='+encodeURIComponent(name)+'&device='+device+'&t='+Date.now();
-    sendBeacon(url);
+    const {log_date,log_time}=nowParts();
+    sb.from('hall_views').insert({log_date,log_time,device,hall_name:name}).then(()=>{});
   }catch(e){}
 }
 let halls=[],currentHall=null,currentImageIndex=0,currentView='grid-large';
@@ -248,9 +249,16 @@ async function loadHalls(){
   }catch(e){}
   // 2) Refresh from network
   try{
-    const [r1,r2]=await Promise.all([fetch(API_URL+'?action=halls'),fetch(API_URL+'?action=settings')]);
-    const rawHalls=(await r1.json()).filter(h=>h.name);
-    const settings=r2.ok?await r2.json():{};
+    const [r1,r2]=await Promise.all([
+      sb.from('halls').select('*'),
+      sb.from('settings').select('*')
+    ]);
+    if(r1.error) throw r1.error;
+    if(r2.error) throw r2.error;
+    const rawHalls=(r1.data||[]).filter(h=>h.name);
+    // settings מגיע מ-Supabase כשורות key/value — הופכים לאובייקט שטוח
+    const settings={};
+    (r2.data||[]).forEach(row=>{settings[row.key]=row.value;});
     const fresh=JSON.stringify({halls:rawHalls,settings});
     // Data unchanged since cache render → skip the second render
     if(renderedFromCache&&cachedRaw===fresh) return;
