@@ -1,355 +1,1449 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>אולם בקליק - בדיקת זמינות אולמות חתונה</title>
-    <meta name="description" content="בדיקה מהירה וקלה של זמינות אולמות חתונה בישראל">
-    <meta property="og:title" content="אולם בקליק">
-    <meta property="og:description" content="בדיקה מהירה של זמינות אולמות חתונה">
-    <meta property="og:type" content="website">
-    
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; font-src 'self' https:; connect-src 'self' https://mzrnwtwyuligsaxeoxhh.supabase.co https://ical-sync.a0559984801.workers.dev;">
-    <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
-    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
-    
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75'>💍</text></svg>">
-    
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        html, body {
-            height: 100%;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #333;
-        }
-        
-        body {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        
-        .container {
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 40px;
-            max-width: 600px;
-            width: 100%;
-        }
-        
-        h1 {
-            text-align: center;
-            color: #667eea;
-            margin-bottom: 10px;
-            font-size: 2em;
-        }
-        
-        .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 0.95em;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
-        }
-        
-        select, input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 1em;
-            font-family: inherit;
-            transition: border-color 0.3s;
-        }
-        
-        select:focus, input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        
-        button {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
-        }
-        
-        button:active {
-            transform: translateY(0);
-        }
-        
-        button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        
-        .results {
-            margin-top: 30px;
-            padding: 20px;
-            background: #f5f5f5;
-            border-radius: 8px;
-            display: none;
-        }
-        
-        .results.show {
-            display: block;
-        }
-        
-        .result-item {
-            padding: 12px;
-            margin-bottom: 10px;
-            background: white;
-            border-right: 4px solid #667eea;
-            border-radius: 4px;
-        }
-        
-        .result-item.busy {
-            border-right-color: #e74c3c;
-        }
-        
-        .result-item.free {
-            border-right-color: #27ae60;
-        }
-        
-        .result-date {
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-        
-        .result-status {
-            font-size: 0.9em;
-            color: #666;
-        }
-        
-        .result-item.busy .result-status {
-            color: #e74c3c;
-            font-weight: 600;
-        }
-        
-        .result-item.free .result-status {
-            color: #27ae60;
-            font-weight: 600;
-        }
-        
-        .loading {
-            text-align: center;
-            color: #667eea;
-            display: none;
-        }
-        
-        .loading.show {
-            display: block;
-        }
-        
-        .error {
-            background: #fee;
-            color: #c00;
-            padding: 12px;
-            border-radius: 8px;
-            margin-top: 15px;
-            display: none;
-        }
-        
-        .error.show {
-            display: block;
-        }
-        
-        .footer {
-            text-align: center;
-            margin-top: 30px;
-            font-size: 0.85em;
-            color: #999;
-        }
-        
-        .footer a {
-            color: #667eea;
-            text-decoration: none;
-        }
-        
-        .footer a:hover {
-            text-decoration: underline;
-        }
-        
-        @media (max-width: 600px) {
-            .container {
-                padding: 20px;
-            }
-            
-            h1 {
-                font-size: 1.5em;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https: data: blob:; media-src 'self' https:; connect-src 'self' https://mzrnwtwyuligsaxeoxhh.supabase.co https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com; frame-src 'none'; object-src 'none'; base-uri 'self';">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://mzrnwtwyuligsaxeoxhh.supabase.co">
+<link rel="dns-prefetch" href="https://www.googletagmanager.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap">
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
+gtag('consent','default',{'analytics_storage':'denied','ad_storage':'denied'});
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-H8MXTNM0HY"></script>
+<script>gtag('js',new Date());gtag('config','G-H8MXTNM0HY');</script>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="apple-touch-icon" href="favicon.png">
+<meta name="description" content="זמינות אולמות חתונה בזמן אמת - בדקו אונליין אילו אולמות פנויים בתאריך שלכם, השוו בין אולמות, וצרו קשר בקליק. עדכון אוטומטי מהלוח שנה של כל אולם.">
+<meta name="keywords" content="אולמות חתונה, זמינות אולמות, אולמות אירועים, אולם לחתונה, חיפוש אולם פנוי">
+<!-- TODO: יש לעדכן את כתובת ה-canonical וה-og:url/og:image לכתובת המלאה ברגע שיש דומיין סופי למיזם -->
+<link rel="canonical" href="index.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="זמינות אולמות חתונה - כל האולמות במקום אחד">
+<meta property="og:description" content="בדקו בזמן אמת אילו אולמות חתונה פנויים בתאריך שלכם. השוו בין אולמות, סננו לפי אזור ומחיר, וצרו קשר ישירות.">
+<meta property="og:image" content="og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="index.html">
+<meta property="og:locale" content="he_IL">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="זמינות אולמות חתונה - כל האולמות במקום אחד">
+<meta name="twitter:description" content="בדקו בזמן אמת אילו אולמות חתונה פנויים בתאריך שלכם.">
+<title>זמינות אולמות חתונה</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Rubik',sans-serif;background:#f7f5f0;color:#1a1a1a;min-height:100vh;display:flex;flex-direction:column;font-weight:400;}
+body.has-bottom-ad{padding-bottom:8vh;}
+
+/* Hero Banner */
+#heroBanner{width:100%;height:55vh;min-height:320px;background:linear-gradient(135deg,#1a1a2e 0%,#3a3a5e 50%,#1a1a2e 100%);background-size:cover;background-position:center;color:white;padding:40px 20px;text-align:center;flex-shrink:0;display:flex;align-items:center;justify-content:center;flex-direction:column;position:relative;overflow:hidden;}
+#heroBanner::before{content:'';position:absolute;top:0;right:0;bottom:0;left:0;background:linear-gradient(90deg,rgba(26,26,46,0.35) 0%,rgba(26,26,46,0.05) 35%,rgba(26,26,46,0.05) 65%,rgba(26,26,46,0.35) 100%);z-index:2;pointer-events:none;}
+#heroBanner::after{content:'';position:absolute;top:0;right:0;bottom:0;left:0;background:radial-gradient(ellipse 60% 50% at center,rgba(26,26,46,0.25) 0%,rgba(26,26,46,0.05) 60%,transparent 100%);z-index:2;pointer-events:none;}
+.slide-layer{position:absolute;inset:0;background-size:cover;background-position:center;z-index:0;will-change:transform,opacity;}
+#heroText,#heroSubtext{position:relative;z-index:10;}
+#heroImg{display:none;}
+#heroText{font-family:'Playfair Display',serif;font-size:3.4rem;font-weight:800;margin-bottom:14px;letter-spacing:-0.5px;color:#c49a3c;text-shadow:0 2px 10px rgba(0,0,0,0.7),0 1px 3px rgba(0,0,0,0.95);}
+#heroSubtext{font-family:'Playfair Display',serif;font-size:1.3rem;opacity:1;font-weight:400;letter-spacing:0.5px;color:#f5e6cc;text-shadow:0 2px 8px rgba(0,0,0,0.7),0 1px 3px rgba(0,0,0,0.95);font-style:italic;}
+
+header{background:#1a1a2e;color:white;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.header-right{display:flex;align-items:center;gap:8px;}
+.hamburger-btn{display:flex;flex-direction:row-reverse;align-items:center;gap:6px;background:#e8b86d;border:none;color:#1a1a2e;font-size:1.3rem;cursor:pointer;padding:7px 14px;line-height:1;text-decoration:none;border-radius:8px;font-weight:700;box-shadow:0 2px 10px rgba(232,184,109,0.5);animation:pulse-filter 2s ease-in-out infinite;}
+.hamburger-btn:hover{background:#f0c987;transform:scale(1.05);}
+.hamburger-label{display:inline-block;font-size:0.92rem;color:#1a1a2e;font-family:'Rubik',sans-serif;font-weight:700;}
+@keyframes pulse-filter{0%,100%{box-shadow:0 2px 10px rgba(232,184,109,0.5);}50%{box-shadow:0 2px 18px rgba(232,184,109,0.9);}}
+header h1{font-size:1.1rem;font-weight:700;}
+#logoImg{height:40px;display:none;border-radius:4px;}
+.legend{display:flex;gap:10px;font-size:0.75rem;}
+.legend-item{display:flex;align-items:center;gap:4px;}
+.dot{width:9px;height:9px;border-radius:50%;}
+.dot-green{background:#2ecc71;}.dot-red{background:#e74c3c;}.dot-orange{background:#f39c12;}
+.header-left{display:flex;gap:8px;align-items:center;}
+.btn-halls,.btn-contact{padding:6px 12px;background:#e8b86d;color:#1a1a2e;border:none;border-radius:6px;cursor:pointer;font-family:'Rubik',sans-serif;font-weight:700;font-size:0.8rem;text-decoration:none;display:inline-flex;align-items:center;}
+
+/* Main layout */
+.main-layout{display:flex;flex:1;overflow:hidden;}
+
+/* Sidebar overlay */
+.sidebar-overlay{display:none;position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,0.4);z-index:99;}
+.sidebar-overlay.open{display:block;}
+
+/* Sidebar */
+.sidebar{
+  width:270px;
+  min-width:270px;
+  background:white;
+  border-left:1px solid #e0ddd6;
+  padding:12px 10px 20px 10px;
+  overflow-y:auto;
+  overflow-x:hidden;
+  flex-shrink:0;
+  display:flex;
+  flex-direction:column;
+  position:fixed;
+  top:56px;
+  right:-270px;
+  bottom:0;
+  z-index:600;
+  box-shadow:-4px 0 20px rgba(0,0,0,0.25);
+  transition:right 0.3s ease;
+}
+body.has-bottom-ad .sidebar{bottom:8vh;}
+.sidebar.open{right:0;}
+.sidebar-title{font-size:0.82rem;font-weight:700;color:#1a1a2e;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #1a1a2e;}
+.filter-group{margin-bottom:11px;position:relative;}
+.day-toggles{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.day-toggle-btn{padding:4px 0;border:1px solid #ddd;border-radius:5px;background:#fafafa;cursor:pointer;font-family:'Rubik',sans-serif;font-size:0.7rem;font-weight:600;color:#333;text-align:center;transition:background 0.15s,color 0.15s,opacity 0.15s;}
+.day-toggle-btn.hidden-day{background:#f0ede8;color:#bbb;text-decoration:line-through;}
+.filter-label{font-size:0.72rem;color:#666;font-weight:600;margin-bottom:4px;display:block;}
+.filter-input{width:100%;padding:6px 7px;border:1px solid #ddd;border-radius:6px;font-family:'Rubik',sans-serif;font-size:0.8rem;background:#fafafa;}
+
+.dropdown-check{position:relative;width:100%;}
+.dropdown-btn{width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:6px;background:#fafafa;cursor:pointer;font-family:'Rubik',sans-serif;font-size:0.8rem;text-align:right;display:flex;justify-content:space-between;align-items:center;color:#333;}
+.dropdown-btn:after{content:'▼';font-size:0.5rem;color:#999;}
+.dropdown-btn.open:after{content:'▲';}
+.dropdown-list{display:none;position:absolute;top:100%;right:0;left:0;z-index:999;background:white;border:1px solid #ddd;border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,0.12);max-height:160px;overflow-y:auto;margin-top:2px;}
+.dropdown-list.open{display:block;}
+.dropdown-item{display:flex;align-items:center;gap:6px;padding:7px 9px;cursor:pointer;font-size:0.8rem;border-bottom:1px solid #f5f5f5;}
+.dropdown-item:last-child{border-bottom:none;}
+.dropdown-item:hover{background:#f7f5f0;}
+.dropdown-item input[type=checkbox]{width:13px;height:13px;cursor:pointer;accent-color:#1a1a2e;}
+.dropdown-item label{cursor:pointer;flex:1;}
+
+.range-row{display:flex;gap:4px;align-items:center;}
+.range-row input{width:48%;padding:5px 5px;border:1px solid #ddd;border-radius:5px;font-family:'Rubik',sans-serif;font-size:0.76rem;}
+.range-row span{font-size:0.7rem;color:#999;}
+
+.btn-filter{width:100%;padding:8px;background:#1a1a2e;color:white;border:none;border-radius:6px;cursor:pointer;font-family:'Rubik',sans-serif;font-weight:600;font-size:0.85rem;margin-top:4px;}
+.btn-reset{width:100%;padding:6px;background:#eee;color:#444;border:none;border-radius:6px;cursor:pointer;font-family:'Rubik',sans-serif;font-size:0.78rem;margin-top:5px;}
+.date-dd{padding:10px 8px;min-width:200px;max-height:none!important;overflow:visible!important;}
+.date-tabs{display:flex;gap:4px;margin-bottom:8px;}
+.date-tab{flex:1;padding:5px;border:1px solid #ddd;border-radius:5px;background:#fafafa;cursor:pointer;font-family:'Rubik',sans-serif;font-size:0.75rem;font-weight:600;color:#555;}
+.date-tab.active{background:#1a1a2e;color:white;border-color:#1a1a2e;}
+.date-panel{display:flex;flex-direction:column;}
+.btn-date-apply{width:100%;margin-top:8px;padding:6px;background:#1a1a2e;color:white;border:none;border-radius:5px;cursor:pointer;font-family:'Rubik',sans-serif;font-size:0.78rem;font-weight:600;}
+.he-date-input{display:flex;justify-content:space-between;align-items:center;padding:6px 7px;border:1px solid #ddd;border-radius:6px;background:#fafafa;cursor:pointer;font-size:0.8rem;font-family:'Rubik',sans-serif;}
+.he-date-input:hover{border-color:#1a1a2e;}
+.he-cal-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.he-cal-nav button{background:none;border:1px solid #ddd;border-radius:4px;cursor:pointer;padding:1px 7px;font-size:1rem;line-height:1.4;}
+.he-cal-nav span{font-size:0.76rem;font-weight:700;color:#1a1a2e;}
+.he-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+.he-cal-dh{text-align:center;font-size:0.52rem;color:#999;font-weight:600;padding:2px 0;}
+.he-cal-cell{min-height:22px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;border-radius:3px;color:#aaa;border:1px solid transparent;}
+.he-cal-cell.hcv{cursor:pointer;color:#333;}
+.he-cal-cell.hcv:hover{background:#f0ede8;}
+.he-cal-cell.hcd{font-weight:800;color:#1a1a2e;}
+.he-cal-cell.hcs{background:#1a1a2e!important;color:white!important;}
+.he-cal-cell.hcr{background:#e8e5f0;}
+
+/* Contact banner */
+.contact-banner{margin-top:auto;padding-top:12px;border-top:1px solid #eee;}
+.btn-admin{width:100%;padding:6px;background:#f0f0f0;color:#555;border:1px solid #ddd;border-radius:5px;cursor:pointer;font-family:'Rubik',sans-serif;font-size:0.72rem;display:none;}
+.btn-admin:hover{background:#e8e8e8;}
+
+/* AD SIDEBAR */
+#adSidebar{width:15vw;background:#e8e4dc;display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:#999;flex-shrink:0;border-right:1px solid #d5d0c8;position:sticky;top:56px;height:calc(100vh - 56px);align-self:flex-start;overflow:hidden;}
+body.has-bottom-ad #adSidebar{height:calc(100vh - 56px - 8vh);}
+#adSidebar img,#adSidebar video{width:100%;height:100%;object-fit:cover;}
+
+/* Table area */
+.table-area{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:8px;height:calc(100vh - 56px);}
+body.has-bottom-ad .table-area{height:calc(100vh - 56px - 8vh);}
+
+.view-toggle{display:none;gap:8px;margin-bottom:8px;align-items:center;flex-shrink:0;}
+.view-btn{padding:5px 12px;border:1px solid #ddd;border-radius:5px;background:white;cursor:pointer;font-family:'Rubik',sans-serif;font-size:0.76rem;color:#555;}
+.view-btn.active{background:#1a1a2e;color:white;border-color:#1a1a2e;}
+.view-note{font-size:0.72rem;color:#999;}
+
+.table-scroll{overflow:auto;flex:1;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,0.07);}
+body.has-bottom-ad .table-scroll{padding-bottom:8vh;}
+table{border-collapse:collapse;background:#d4cdc4;font-size:0.68rem;width:max-content;min-width:100%;border:2px solid #b5ada2;}
+thead{position:sticky;top:0;z-index:10;}
+thead tr{background:#1a1a2e;color:white;}
+th{padding:8px 5px;text-align:center;font-weight:600;font-size:0.65rem;white-space:nowrap;border-left:2px solid rgba(255,255,255,0.2);}
+th.date-col{text-align:right;min-width:100px;position:sticky;right:0;background:#1a1a2e;z-index:12;border-left:none;}
+td{padding:0;text-align:center;border-bottom:2px solid #c0b8ae;border-left:2px solid #c0b8ae;height:32px;background:white;}
+tr.hidden-day-gap td{height:11px;padding:0;background:linear-gradient(135deg,#dde3f0 25%,#e4e9f5 25%,#e4e9f5 50%,#dde3f0 50%,#dde3f0 75%,#e4e9f5 75%);background-size:8px 8px;border:none;}
+td.date-cell{text-align:right;font-weight:600;color:#333;white-space:nowrap;background:#fafaf7;position:sticky;right:0;border-left:2px solid #d5cfc4;border-right:none;padding:3px 5px;z-index:6;cursor:pointer;}
+td.date-cell:hover{background:#e8e4dc;}
+td.date-cell.selected{background:#1a1a2e;color:#e8b86d;}
+.date-greg{font-size:0.6rem;color:#bbb;display:block;font-weight:400;}
+.cell-status{display:block;width:100%;height:32px;line-height:32px;font-size:0.65rem;font-weight:700;text-align:center;}
+.cell-free{background:#d4f5e4;color:#1a7a45;}
+.cell-taken{background:#fde8e8;color:#a32020;}
+.cell-reserved{background:#fef3cd;color:#8a5c00;}
+
+/* Calendar */
+.calendar-view{display:none;overflow-y:auto;flex:1;}
+body.has-bottom-ad .calendar-view{padding-bottom:8vh;}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.cal-nav{padding:5px 12px;background:#1a1a2e;color:white;border:none;border-radius:5px;cursor:pointer;font-family:'Rubik',sans-serif;font-size:0.8rem;}
+.cal-title{font-size:0.9rem;font-weight:700;color:#1a1a2e;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+.cal-day-header{text-align:center;font-size:0.68rem;color:#999;font-weight:600;padding:3px;}
+.cal-cell{min-height:52px;border-radius:5px;padding:3px;font-size:0.65rem;border:1px solid #eee;background:white;}
+.cal-cell.empty{background:transparent;border:none;}
+.cal-date-he{font-size:0.6rem;color:#555;font-weight:600;}
+.cal-date-greg{font-size:0.58rem;color:#aaa;display:block;margin-bottom:2px;}
+.cal-status{font-size:0.58rem;font-weight:700;padding:1px 3px;border-radius:3px;margin-top:2px;display:inline-block;}
+
+.loading{text-align:center;padding:50px;color:#888;font-size:0.9rem;}
+.error{text-align:center;padding:30px;color:#e74c3c;font-size:0.85rem;}
+
+/* BOTTOM AD */
+#adBottom{position:fixed;bottom:0;right:0;left:0;height:8vh;background:#1a1a2e;display:none;align-items:center;justify-content:center;font-size:0.85rem;color:#e8b86d;font-weight:600;border-top:2px solid #e8b86d;z-index:500;overflow:hidden;}
+#adBottomContent{width:100%;height:100%;display:flex;align-items:center;justify-content:center;text-decoration:none;cursor:pointer;}
+#adBottomContent img,#adBottomContent video{width:100%;height:100%;object-fit:cover;}
+.ad-bottom-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;background:rgba(0,0,0,0.6);padding:8px 16px;border-radius:4px;color:white;pointer-events:none;text-align:center;font-size:1rem;font-weight:700;}
+#adSidebar a.ad-link{display:block;width:100%;height:100%;}
+#adSidebar a.ad-link img,#adSidebar a.ad-link video{width:100%;height:100%;object-fit:cover;}
+
+.ad-bottom-spacer{height:8vh;flex-shrink:0;}
+
+/* Date Tooltip */
+#dateTooltip{position:fixed;display:none;background:white;color:#1a1a2e;padding:10px 16px;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.2);font-size:0.82rem;font-weight:600;z-index:2000;pointer-events:none;border:1px solid #e0ddd6;white-space:nowrap;}
+#dateTooltip::after{content:'';position:absolute;top:100%;right:20px;border:6px solid transparent;border-top-color:white;}
+
+/* Hall Info Modal (hover preview) */
+.hall-modal-overlay{display:none;position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,0.6);z-index:1500;align-items:center;justify-content:center;padding:16px;}
+.hall-modal-overlay.open{display:flex;}
+.hall-modal{background:white;border-radius:15px;width:100%;max-width:600px;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 10px 40px rgba(0,0,0,0.3);}
+.hall-modal-header{text-align:center;padding:22px 20px 14px;border-bottom:1px solid #f0ece4;position:relative;overflow:hidden;}
+.hall-modal-header::before{content:'';position:absolute;top:0;right:0;bottom:0;left:0;opacity:0.03;background-image:linear-gradient(45deg,#1a1a2e 25%,transparent 25%,transparent 75%,#1a1a2e 75%,#1a1a2e);background-size:40px 40px;}
+.hall-modal-header h2{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;color:#1a1a2e;position:relative;z-index:1;}
+.hall-gallery{position:relative;background:#f7f5f0;padding:16px;}
+.hall-gallery-img{width:100%;max-height:280px;object-fit:contain;border-radius:10px;}
+.hall-gallery-nav{position:absolute;top:50%;width:100%;display:flex;justify-content:space-between;align-items:center;transform:translateY(-50%);padding:0 24px;}
+.hall-gallery-btn{background:rgba(26,26,46,0.7);color:white;border:none;width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:1.2rem;display:flex;align-items:center;justify-content:center;}
+.hall-gallery-btn:hover{background:rgba(26,26,46,0.9);}
+.hall-gallery-dots{text-align:center;padding:8px 0 0;font-size:0.8rem;color:#999;}
+.hall-modal-content{flex:1;overflow-y:auto;padding:20px;}
+.hall-field-row{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid #f0ece4;}
+.hall-field-row:last-child{border-bottom:none;}
+.hall-field-label{font-weight:700;color:#555;font-size:0.85rem;min-width:100px;white-space:nowrap;}
+.hall-field-value{color:#333;font-size:0.88rem;flex:1;word-break:break-word;line-height:1.4;}
+.hall-field-value a{color:#1a1a2e;}
+
+/* Clickable hall header */
+th.hall-name-th{cursor:pointer;}
+th.hall-name-th:hover{background:#2a2a4e;}
+
+/* Hall Name Tooltip */
+#hallTooltip{position:fixed;display:none;background:white;color:#1a1a2e;padding:8px 14px;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.2);font-size:0.8rem;font-weight:600;z-index:2000;pointer-events:none;border:1px solid #e0ddd6;white-space:nowrap;}
+#hallTooltip::after{content:'';position:absolute;top:100%;right:20px;border:6px solid transparent;border-top-color:white;}
+
+/* Hall Fullscreen */
+.hall-fs-overlay{display:none;position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,0.95);z-index:3000;align-items:center;justify-content:center;}
+.hall-fs-overlay.open{display:flex;}
+.hall-fs-close{position:absolute;top:20px;right:20px;background:white;color:#1a1a2e;border:none;width:45px;height:45px;border-radius:50%;font-size:1.5rem;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;}
+.hall-fs-nav-btn{background:rgba(255,255,255,0.2);color:white;border:none;width:50px;height:50px;border-radius:50%;font-size:1.5rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.hall-fs-nav-btn:hover{background:rgba(255,255,255,0.4);}
+
+/* Modal */
+.modal-overlay{display:none;position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:white;border-radius:10px;padding:24px;width:320px;max-width:90vw;}
+.modal h2{font-size:1rem;margin-bottom:16px;color:#1a1a2e;}
+.modal input{width:100%;padding:9px;border:1px solid #ddd;border-radius:6px;font-family:'Rubik',sans-serif;font-size:0.9rem;margin-bottom:10px;}
+.modal .modal-btns{display:flex;gap:8px;}
+.modal .btn-ok{flex:1;padding:9px;background:#1a1a2e;color:white;border:none;border-radius:6px;cursor:pointer;font-family:'Rubik',sans-serif;font-weight:600;}
+.modal .btn-cancel{padding:9px 14px;background:#eee;color:#444;border:none;border-radius:6px;cursor:pointer;font-family:'Rubik',sans-serif;}
+.modal .error-msg{color:#e74c3c;font-size:0.78rem;margin-bottom:8px;display:none;}
+
+/* ===== MOBILE ===== */
+@media(max-width:700px){
+  .main-layout{flex-direction:column;}
+  #adSidebar{display:none !important;}
+  .legend{display:none;}
+  .table-area{height:calc(100vh - 56px);}
+  body.has-bottom-ad .table-area{height:calc(100vh - 56px - 8vh);}
+  .hamburger-btn{display:inline-flex;}
+  .hamburger-label{display:inline-block;}
+  #siteHeader{justify-content:space-evenly;padding:8px 6px;}
+  .header-right,.header-left{gap:0;}
+  .btn-halls,.btn-contact,.hamburger-btn{font-size:0.72rem;padding:6px 8px;}
+  #adBottom{height:min(8vh,15vh);}
+  #adBottomContent img,#adBottomContent video{object-fit:contain;}
+  body.has-bottom-ad{padding-bottom:min(8vh,15vh);}
+  body.has-bottom-ad .sidebar{bottom:min(8vh,15vh);}
+  body.has-bottom-ad .table-area{height:calc(100vh - 56px - min(8vh,15vh));}
+  body.has-bottom-ad .table-scroll{padding-bottom:min(8vh,15vh);}
+  body.has-bottom-ad .calendar-view{padding-bottom:min(8vh,15vh);}
+  .ad-bottom-spacer{height:min(8vh,15vh);}
+  body.has-bottom-ad #adSidebar{height:calc(100vh - 56px - min(8vh,15vh));}
+}/* Cookie consent banner */
+#cookieBanner{display:none;position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,0.55);z-index:4000;align-items:center;justify-content:center;padding:16px;}
+#cookieBanner.show{display:flex;}
+#cookieBannerBox{background:white;color:#1a1a2e;border-radius:14px;padding:26px 24px;max-width:420px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,0.3);font-size:0.85rem;line-height:1.6;text-align:center;}
+#cookieBannerBox h3{font-family:'Playfair Display',serif;font-size:1.15rem;margin-bottom:10px;color:#1a1a2e;}
+#cookieBannerBox a{color:#1a1a2e;text-decoration:underline;font-weight:600;}
+.cookie-btns{display:flex;gap:8px;margin-top:16px;}
+.cookie-btn{flex:1;padding:10px;border:none;border-radius:7px;cursor:pointer;font-family:'Rubik',sans-serif;font-weight:700;font-size:0.82rem;}
+.cookie-btn.accept{background:#1a1a2e;color:#e8b86d;}
+.cookie-btn.accept:hover{background:#2a2a4e;}
+.cookie-btn.decline{background:#eee;color:#444;}
+.cookie-btn.decline:hover{background:#e2e2e2;}
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>💍 אולם בקליק</h1>
-        <p class="subtitle">בדוק זמינות אולמות חתונה בקלות</p>
-        
-        <form id="searchForm">
-            <div class="form-group">
-                <label for="hallSelect">בחר אולם:</label>
-                <select id="hallSelect" required>
-                    <option value="">-- בחר אולם --</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label for="dateInput">תאריך:</label>
-                <input type="date" id="dateInput" required>
-            </div>
-            
-            <button type="submit">בדוק זמינות</button>
-        </form>
-        
-        <div class="loading" id="loading">
-            <p>⏳ טוען...</p>
-        </div>
-        
-        <div class="error" id="error"></div>
-        
-        <div class="results" id="results">
-            <h3 style="margin-bottom: 15px;">תוצאות:</h3>
-            <div id="resultsList"></div>
-        </div>
-        
-        <div class="footer">
-            <p>🔒 נתוני הזמינות מעודכנים יומית</p>
-            <p><a href="privacy.html">מדיניות פרטיות</a></p>
-        </div>
+
+<!-- Cookie consent modal (one-time) -->
+<div id="cookieBanner">
+  <div id="cookieBannerBox">
+    <h3>🍪 שימוש בעוגיות</h3>
+    האתר משתמש בעוגיות (קוקיז) לצורך ניתוח שימוש בלבד (Google Analytics).
+    <a href="privacy.html" target="_blank" rel="noopener">למדיניות הפרטיות</a>
+    <div class="cookie-btns">
+      <button class="cookie-btn accept" onclick="cookieConsentChoice(true)">מאשר/ת</button>
+      <button class="cookie-btn decline" onclick="cookieConsentChoice(false)">דוחה</button>
     </div>
-    
-    <script src="supabase.min.js"></script>
-    <script>
-        // Initialize Supabase
-        const SUPABASE_URL = 'https://mzrnwtwyuligsaxeoxhh.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16cm53dHd1bGlnc2F4ZW94aGgiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTcxNzc0Mjk4NCwiZXhwIjoxODc1NTA4OTg0fQ.Gvq7_8XWmgZQ6qpLfxC8FsKL6-4gq0rXV1iSZANVjqU';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        
-        const hallSelect = document.getElementById('hallSelect');
-        const dateInput = document.getElementById('dateInput');
-        const searchForm = document.getElementById('searchForm');
-        const loading = document.getElementById('loading');
-        const error = document.getElementById('error');
-        const results = document.getElementById('results');
-        const resultsList = document.getElementById('resultsList');
-        
-        // Set today's date as default
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        dateInput.valueAsDate = today;
-        dateInput.min = today.toISOString().split('T')[0];
-        
-        // Load halls on page load
-        (async () => {
-            try {
-                const { data: halls, error: err } = await supabase
-                    .from('halls')
-                    .select('id, name')
-                    .order('name');
-                
-                if (err) throw err;
-                
-                halls.forEach(hall => {
-                    const option = document.createElement('option');
-                    option.value = hall.id;
-                    option.textContent = hall.name;
-                    hallSelect.appendChild(option);
-                });
-            } catch (e) {
-                console.error('Error loading halls:', e);
-                showError('שגיאה בטעינת רשימת האולמות');
-            }
-        })();
-        
-        searchForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const hallId = hallSelect.value;
-            const date = dateInput.value;
-            
-            if (!hallId || !date) {
-                showError('אנא בחר אולם ותאריך');
-                return;
-            }
-            
-            loading.classList.add('show');
-            error.classList.remove('show');
-            results.classList.remove('show');
-            
-            try {
-                const { data: availability, error: err } = await supabase
-                    .from('זמינות')
-                    .select(`*`)
-                    .eq('hall_id', hallId)
-                    .eq('date', date);
-                
-                if (err) throw err;
-                
-                loading.classList.remove('show');
-                
-                if (availability && availability.length > 0) {
-                    const record = availability[0];
-                    const status = record.is_busy ? 'תפוס' : 'פנוי';
-                    const statusClass = record.is_busy ? 'busy' : 'free';
-                    
-                    resultsList.innerHTML = `
-                        <div class="result-item ${statusClass}">
-                            <div class="result-date">${formatDate(date)}</div>
-                            <div class="result-status">${status}</div>
-                        </div>
-                    `;
-                    results.classList.add('show');
-                } else {
-                    showError('אין נתונים עבור תאריך זה');
-                }
-            } catch (e) {
-                console.error('Error fetching availability:', e);
-                loading.classList.remove('show');
-                showError('שגיאה בקבלת נתוני הזמינות');
-            }
+  </div>
+</div>
+
+<!-- Hero Banner -->
+<div id="heroBanner">
+  <img id="heroImg" src="" alt="לוגו"/>
+  <div style="position:relative;z-index:10;text-align:center;">
+    <div id="heroText">כל האולמות במקום אחד</div>
+    <div id="heroSubtext">בחרו את האולם המושלם לאירוע שלכם</div>
+  </div>
+</div>
+
+<header id="siteHeader">
+  <div class="header-right">
+    <button class="hamburger-btn" onclick="toggleSidebar()"><span class="hamburger-label">👉 סינון תוצאות</span></button>
+  </div>
+  <div class="header-left">
+    <a href="halls.html" class="btn-halls">🏛 מידע על אולמות</a>
+    <a href="#" id="contactBtnHeader" class="btn-contact" style="display:none">📬 צור קשר</a>
+  </div>
+</header>
+
+<!-- Mobile backdrop -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<div class="main-layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="mainSidebar">
+    <div class="sidebar-title">🔍 סינון</div>
+
+    <div class="filter-group">
+      <span class="filter-label">תאריך</span>
+      <div class="dropdown-check">
+        <button class="dropdown-btn" id="btnDate" onclick="toggleDD('listDate','btnDate')"><span id="lblDate">הכל</span></button>
+        <div class="dropdown-list date-dd" id="listDate">
+          <div class="date-tabs">
+            <button class="date-tab active" id="tabGreg" onclick="switchDateTab('greg')">לועזי</button>
+            <button class="date-tab" id="tabHeb" onclick="switchDateTab('heb')">עברי</button>
+          </div>
+          <div id="dateTabGreg" class="date-panel">
+            <span class="filter-label">מתאריך</span>
+            <input type="date" id="filterFrom" class="filter-input"/>
+            <span class="filter-label" style="margin-top:6px">עד תאריך</span>
+            <input type="date" id="filterTo" class="filter-input"/>
+          </div>
+          <div id="dateTabHeb" class="date-panel" style="display:none">
+            <span class="filter-label">מתאריך (עברי)</span>
+            <div class="he-date-input" id="heFromBtn" onclick="showHePicker('from')"><span id="heFromDisplay">-- בחר --</span><span>📅</span></div>
+            <span class="filter-label" style="margin-top:6px">עד תאריך (עברי)</span>
+            <div class="he-date-input" id="heToBtn" onclick="showHePicker('to')"><span id="heToDisplay">-- בחר --</span><span>📅</span></div>
+            <div id="heCalPopup" style="display:none;margin-top:8px;border:1px solid #ddd;border-radius:8px;padding:8px;background:white;">
+              <div class="he-cal-nav">
+                <button onclick="heCalNav(1)">&#x2039;</button>
+                <span id="heCalTitle"></span>
+                <button onclick="heCalNav(-1)">&#x203a;</button>
+              </div>
+              <div class="he-cal-grid" id="heCalGrid"></div>
+            </div>
+          </div>
+          <button class="btn-date-apply" onclick="applyDateFilter()">החל</button>
+        </div>
+      </div>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">עיר</span>
+      <div class="dropdown-check">
+        <button class="dropdown-btn" id="btnCity" onclick="toggleDD('listCity','btnCity')"><span id="lblCity">הכל</span></button>
+        <div class="dropdown-list" id="listCity"></div>
+      </div>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">כשרות</span>
+      <div class="dropdown-check">
+        <button class="dropdown-btn" id="btnKashrut" onclick="toggleDD('listKashrut','btnKashrut')"><span id="lblKashrut">הכל</span></button>
+        <div class="dropdown-list" id="listKashrut"></div>
+      </div>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">אולם</span>
+      <div class="dropdown-check">
+        <button class="dropdown-btn" id="btnHall" onclick="toggleDD('listHall','btnHall')"><span id="lblHall">הכל</span></button>
+        <div class="dropdown-list" id="listHall"></div>
+      </div>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">מס' מקומות</span>
+      <div class="range-row">
+        <input type="number" id="seatsMin" placeholder="מינ'" />
+        <span>—</span>
+        <input type="number" id="seatsMax" placeholder="מקס'" />
+      </div>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">נגישות</span>
+      <div class="dropdown-check">
+        <button class="dropdown-btn" id="btnAccess" onclick="toggleDD('listAccess','btnAccess')"><span id="lblAccess">הכל</span></button>
+        <div class="dropdown-list" id="listAccess"></div>
+      </div>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">הצג ימים</span>
+      <div class="day-toggles" id="dayToggles">
+        <button class="day-toggle-btn" id="dayBtn0" onclick="toggleDayVisibility(0)">ראשון</button>
+        <button class="day-toggle-btn" id="dayBtn1" onclick="toggleDayVisibility(1)">שני</button>
+        <button class="day-toggle-btn" id="dayBtn2" onclick="toggleDayVisibility(2)">שלישי</button>
+        <button class="day-toggle-btn" id="dayBtn3" onclick="toggleDayVisibility(3)">רביעי</button>
+        <button class="day-toggle-btn" id="dayBtn4" onclick="toggleDayVisibility(4)">חמישי</button>
+        <button class="day-toggle-btn" id="dayBtn5" onclick="toggleDayVisibility(5)">שישי</button>
+        <button class="day-toggle-btn" id="dayBtn6" onclick="toggleDayVisibility(6)">שבת</button>
+      </div>
+    </div>
+    <button class="btn-filter" onclick="applyFilters()">סנן</button>
+    <button class="btn-reset" onclick="resetFilters()">איפוס</button>
+  </div>
+
+  <!-- TABLE AREA -->
+  <div class="table-area">
+    <div class="view-toggle" id="viewToggle">
+      <button class="view-btn active" id="btnTableView" onclick="setView('table')">טבלה</button>
+      <button class="view-btn" id="btnCalView" onclick="setView('calendar')">לוח שנה חודשי</button>
+      <span class="view-note" id="viewNote"></span>
+    </div>
+
+    <div class="loading" id="loading">טוען נתונים...</div>
+    <div class="error" id="errorMsg" style="display:none">
+      <span id="errorMsgText"></span>
+      <button id="errorRetryBtn" class="btn-filter" style="width:auto;margin-top:8px;padding:6px 18px;" onclick="fetchData()">נסה שוב</button>
+    </div>
+
+    <div class="table-scroll" id="tableView">
+      <table id="mainTable" style="display:none">
+        <thead id="tableHead"></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="calendar-view" id="calendarView">
+      <div class="cal-header">
+        <button class="cal-nav" onclick="calPrev()">◄</button>
+        <div class="cal-title" id="calTitle"></div>
+        <button class="cal-nav" onclick="calNext()">►</button>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+
+    <div class="ad-bottom-spacer" id="adBottomSpacer" style="display:none"></div>
+  </div>
+
+  <!-- SIDEBAR AD -->
+  <div id="adSidebar" style="display:none">פרסומת<br>160×600</div>
+</div>
+
+<!-- BOTTOM AD -->
+<div id="adBottom"><div id="adBottomContent"><span id="adContent">פרסומת</span></div></div>
+
+<!-- POPUP AD -->
+<div id="popupAdOverlay" onclick="closePopupAd()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:9999;align-items:center;justify-content:center;">
+  <div onclick="event.stopPropagation()" style="position:relative;max-width:480px;width:90%;border-radius:12px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.5);">
+    <button onclick="closePopupAd()" style="position:absolute;top:8px;left:8px;background:rgba(0,0,0,0.55);border:none;color:white;border-radius:50%;width:34px;height:34px;font-size:1.2rem;cursor:pointer;z-index:10;line-height:1;display:flex;align-items:center;justify-content:center;">✕</button>
+    <a id="popupAdLink" href="#" target="_blank" rel="noopener noreferrer" style="display:block;text-decoration:none;">
+      <img id="popupAdImg" src="" alt="פרסומת" style="width:100%;display:block;">
+    </a>
+  </div>
+</div>
+
+<!-- Date Tooltip -->
+<div id="dateTooltip">👉 לחץ על התאריך להעברת האולמות הפנויים בתאריך זה לקדמת הטבלה</div>
+
+<!-- Hall Name Tooltip -->
+<div id="hallTooltip">👆 לפרטי האולם לחץ על שם האולם</div>
+
+<!-- Admin Modal Removed -->
+
+<!-- Hall Info Modal (hover preview) -->
+<div class="hall-modal-overlay" id="hallModalOverlay" onclick="closeHallModal()">
+
+<!-- Hall Fullscreen -->
+<div class="hall-fs-overlay" id="hallFsOverlay" onclick="closeHallFs(event)">
+  <button class="hall-fs-close" onclick="closeHallFs()">✕</button>
+  <div style="position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
+    <img id="hallFsImage" style="max-width:95%;max-height:95%;object-fit:contain;" onclick="event.stopPropagation()"/>
+    <div id="hallFsNav" style="display:none;position:absolute;top:50%;width:100%;display:flex;justify-content:space-between;padding:0 30px;transform:translateY(-50%);">
+      <button class="hall-fs-nav-btn" onclick="hallFsPrev(event)">‹</button>
+      <button class="hall-fs-nav-btn" onclick="hallFsNext(event)">›</button>
+    </div>
+    <div id="hallFsCounter" style="position:absolute;bottom:30px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.5);color:white;padding:8px 18px;border-radius:20px;font-size:0.9rem;"></div>
+  </div>
+</div>
+  <div class="hall-modal" onclick="event.stopPropagation()">
+    <div class="hall-modal-header">
+      <h2 id="hallModalTitle"></h2>
+    </div>
+    <div class="hall-gallery" id="hallGallery" style="display:none;">
+      <img id="hallGalleryImg" class="hall-gallery-img" onclick="openHallFullscreen()" style="cursor:zoom-in;"/>
+      <div class="hall-gallery-nav" id="hallGalleryNav" style="display:none;">
+        <button class="hall-gallery-btn" onclick="hallPrevImg(event)">‹</button>
+        <button class="hall-gallery-btn" onclick="hallNextImg(event)">›</button>
+      </div>
+      <div class="hall-gallery-dots" id="hallGalleryDots"></div>
+    </div>
+    <div class="hall-modal-content">
+      <div id="hallModalFields"></div>
+    </div>
+  </div>
+</div>
+
+<script src="supabase.min.js"></script>
+<script>
+// חיבור ל-Supabase (מסד הנתונים החדש של המיזם)
+const SUPABASE_URL='https://mzrnwtwyuligsaxeoxhh.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16cm53dHd5dWxpZ3NheGVveGhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MDExMDUsImV4cCI6MjA5ODM3NzEwNX0.1zJKrl4iJtWcv46h8pmiub0u2BoiIGapWmZuDJjLNKs';
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+// Safe JSON parse - never crashes on bad data
+function safeParse(str,fallback){
+  if(!str) return fallback;
+  try{ return JSON.parse(str); }catch(e){ return fallback; }
+}
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+// Format a Date as YYYY-MM-DD using LOCAL time (not UTC like toISOString()).
+// Using toISOString() here was the cause of the date filter showing "yesterday":
+// for users east of UTC (like Israel, UTC+2/+3), toISOString() converts to UTC
+// first, which can roll the date back by one day depending on the time of day.
+function toLocalDateStr(d){
+  const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+// רישום ביקור/צפייה ל-Supabase (fire and forget, אף פעם לא חוסם את הדף)
+function nowParts(){
+  const d=new Date();
+  return {log_date:toLocalDateStr(d), log_time:d.toTimeString().slice(0,8)};
+}
+let _visitLogged=false;
+function logVisit(page){
+  if(_visitLogged)return; _visitLogged=true;
+  const fire=()=>{try{
+    const device=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)?'mobile':'desktop';
+    const {log_date,log_time}=nowParts();
+    sb.from('analytics_log').insert({log_date,log_time,device,page}).then(()=>{});
+  }catch(e){}};
+  const sched=()=>window.requestIdleCallback?window.requestIdleCallback(fire):setTimeout(fire,1);
+  if(document.readyState==='complete') sched();
+  else window.addEventListener('load',sched,{once:true});
+}
+function logHallView(name){
+  try{
+    const device=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)?'mobile':'desktop';
+    const {log_date,log_time}=nowParts();
+    sb.from('hall_views').insert({log_date,log_time,device,hall_name:name}).then(()=>{});
+  }catch(e){}
+}
+const DAYS_HE=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+const DAYS_S=['א','ב','ג','ד','ה','ו','ש'];
+const MONTHS_GREG=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+
+let allData=[], currentView='table', calYear, calMonth, calHall='', selectedDateKey=null;
+let localHiddenDays=[];
+const localHiddenDates=new Set();
+let _tableHalls=[];
+
+function initDayToggles(){
+  try{ localHiddenDays=JSON.parse((window._settings&&window._settings.hiddenDays)||'[]'); }catch(e){ localHiddenDays=[]; }
+  localHiddenDays.forEach(i=>{ const b=document.getElementById('dayBtn'+i); if(b) b.classList.add('hidden-day'); });
+  localHiddenDates.clear();
+  try{ JSON.parse((window._settings&&window._settings.hiddenDates)||'[]').forEach(k=>localHiddenDates.add(k)); }catch(e){}
+}
+
+function toggleDayVisibility(i){
+  const btn=document.getElementById('dayBtn'+i);
+  if(localHiddenDays.includes(i)){
+    localHiddenDays=localHiddenDays.filter(d=>d!==i);
+    btn.classList.remove('hidden-day');
+  } else {
+    localHiddenDays.push(i);
+    btn.classList.add('hidden-day');
+  }
+  buildTable();
+}
+let adTimers={Top:null,Bottom:null,Side:null};
+let adPlaylists={Top:[],Bottom:[],Side:[]},adIndex={Top:0,Bottom:0,Side:0};
+
+// Flatten every ad item into one ordered playlist of {ad, media}:
+// base image/video first, then each gallery item. Rotation cycles the whole
+// list in an infinite loop so image→image→video→(next ad)→… all play.
+function buildPlaylist(items){
+  const pl=[];
+  (items||[]).forEach(ad=>{
+    if(ad.img) pl.push({ad,media:{type:'image',url:ad.img,urlMobile:ad.imgMobile}});
+    else if(ad.vid) pl.push({ad,media:{type:'video',url:ad.vid}});
+    (ad.gallery||[]).forEach(m=>{ if(m&&(m.url||m.urlMobile)) pl.push({ad,media:m}); });
+  });
+  return pl;
+}
+
+function showAdSlide(pos,i){
+  const slide=adPlaylists[pos][i];
+  if(!slide) return;
+  if(pos==='Bottom') updateBottomAdMedia(slide.ad,slide.media);
+  else if(pos==='Side') updateSideAdMedia(slide.ad,slide.media);
+}
+
+function scheduleAd(pos){
+  const pl=adPlaylists[pos];
+  if(pl.length<2) return; // nothing to rotate
+  const cur=pl[adIndex[pos]];
+  const dur=Math.max(2000,(cur.ad.duration||5)*1000);
+  clearTimeout(adTimers[pos]);
+  adTimers[pos]=setTimeout(()=>{
+    adIndex[pos]=(adIndex[pos]+1)%pl.length;
+    showAdSlide(pos,adIndex[pos]);
+    scheduleAd(pos);
+  },dur);
+}
+
+// Start (or restart) a position's rotation. Returns false if there's no media.
+function startAd(pos,items){
+  clearTimeout(adTimers[pos]);
+  const pl=buildPlaylist(items);
+  adPlaylists[pos]=pl;
+  adIndex[pos]=0;
+  if(!pl.length) return false;
+  showAdSlide(pos,0);
+  scheduleAd(pos);
+  return true;
+}
+
+function wrapLink(link,html){
+  return link?`<a href="${escHtml(link)}" target="_blank" rel="noopener" style="display:block;width:100%;height:100%;text-decoration:none;position:relative;">${html}</a>`:html;
+}
+
+const IS_MOBILE=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+function pickUrl(media){return (IS_MOBILE&&media.urlMobile)?media.urlMobile:media.url;}
+
+function updateBottomAdMedia(ad,media){
+  const content=document.getElementById('adBottomContent');
+  if(!content) return;
+  const txt=ad.text||'';
+  const link=ad.link;
+  const url=pickUrl(media);
+  let inner='';
+  if(media.type==='video') inner+=`<video autoplay loop muted><source src="${escHtml(url)}" type="video/mp4"/></video>`;
+  else inner+=`<img src="${escHtml(url)}"/>`;
+  if(txt) inner+=`<span class="ad-bottom-text">${escHtml(txt)}</span>`;
+  content.innerHTML=wrapLink(link,inner);
+}
+
+function updateSideAdMedia(ad,media){
+  const adSide=document.getElementById('adSidebar');
+  if(!adSide) return;
+  const url=pickUrl(media);
+  let inner='';
+  if(media.type==='video') inner=`<video autoplay loop muted style="width:100%;height:100%;object-fit:cover;"><source src="${escHtml(url)}" type="video/mp4"/></video>`;
+  else inner=`<img src="${escHtml(url)}" style="width:100%;height:100%;object-fit:cover;display:block;"/>`;
+  adSide.innerHTML=wrapLink(ad.link,inner);
+}
+
+function updateBottomAd(ad){
+  const content=document.getElementById('adBottomContent');
+  if(!content) return;
+  const txt=ad.text||'';
+  const link=ad.link;
+  const img=(IS_MOBILE&&ad.imgMobile)?ad.imgMobile:(ad.img||null);
+  const vid=ad.vid;
+  let inner='';
+  if(img) inner+=`<img src="${escHtml(img)}"/>`;
+  else if(vid) inner+=`<video autoplay loop muted><source src="${escHtml(vid)}" type="video/mp4"/></video>`;
+  if(txt) inner+=`<span class="ad-bottom-text">${escHtml(txt)}</span>`;
+  content.innerHTML=wrapLink(link,inner);
+}
+
+function updateSideAd(ad){
+  const adSide=document.getElementById('adSidebar');
+  if(!adSide) return;
+  const txt=ad.text||'פרסומת צדדית';
+  const link=ad.link;
+  const img=(IS_MOBILE&&ad.imgMobile)?ad.imgMobile:(ad.img||null);
+  const vid=ad.vid;
+  let inner='';
+  if(img) inner=`<img src="${escHtml(img)}" style="width:100%;height:100%;object-fit:cover;display:block;"/>`;
+  else if(vid) inner=`<video autoplay loop muted style="width:100%;height:100%;object-fit:cover;"><source src="${escHtml(vid)}" type="video/mp4"/></video>`;
+  else inner=`<span style="color:#999">${escHtml(txt)}</span>`;
+  adSide.innerHTML=wrapLink(link,inner);
+}
+
+// Hebrew date helpers
+const HD=['','א','ב','ג','ד','ה','ו','ז','ח','ט','י','יא','יב','יג','יד','טו','טז','יז','יח','יט','כ','כא','כב','כג','כד','כה','כו','כז','כח','כט','ל'];
+const HH=['','ק','ר','ש','ת'],HT=['','י','כ','ל','מ','נ','ס','ע','פ','צ'],HO=['','א','ב','ג','ד','ה','ו','ז','ח','ט'];
+function yearHe(y){const n=y%1000,h=Math.floor(n/100),t=Math.floor((n%100)/10),o=n%10;let r=(HH[h]||'')+(HT[t]||'')+(HO[o]||'');return r.length>1?r.slice(0,-1)+'"'+r.slice(-1):r+"'";}
+function toHe(d){try{const r=d.toLocaleDateString('he-IL-u-ca-hebrew',{year:'numeric',month:'long',day:'numeric'});const m=r.match(/(\d+)\s+ב?(\S+)\s+(\d+)/);return m?(HD[+m[1]]||m[1])+"' "+m[2]+' '+yearHe(+m[3]):r;}catch(e){return '';}}
+function fmtKey(d){return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();}
+
+function parseAPI(rows){
+  const result=[];
+  rows.forEach(r=>{
+    const keys=Object.keys(r);
+    const fk=n=>keys.find(k=>k.toLowerCase().includes(n))||null;
+    const dateKey=fk('date'), hallKey=fk('hallname')||fk('hall');
+    const statusKey=fk('status');
+    const cityKey=fk('city')||fk('location')||fk('עיר')||fk('אזור');
+    const kashKey=fk('kashrut')||fk('kosher')||fk('כשרות')||fk('כשר');
+    const seatsKey=fk('מקומות')||fk('seats')||fk('קיבולת')||fk('capacity');
+    const accessKey=fk('נגישות')||fk('access')||fk('נגיש');
+    if(!dateKey||!hallKey) return;
+    let raw=r[dateKey]+'', pd=null;
+    if(raw.includes('/'))pd=new Date(+raw.split('/')[2],+raw.split('/')[1]-1,+raw.split('/')[0]);
+    else if(raw.includes('-')){
+      if(raw.includes('T')||raw.includes(':')){
+        // ISO timestamp from Google (e.g., "2026-06-13T21:00:00.000Z")
+        // Let Date convert UTC to local time so the date matches the sheet.
+        pd=new Date(raw);
+      } else {
+        // Plain yyyy-mm-dd with no time: build a local date to avoid UTC shift.
+        const dp=raw.split('-');
+        pd=new Date(+dp[0],+dp[1]-1,+dp[2]);
+      }
+    }
+    else return;
+    if(!pd||isNaN(pd)) return;
+    result.push({
+      dateObj:pd, dateKey:fmtKey(pd),
+      hall:r[hallKey]||'',
+      status:r[statusKey]||'פנוי',
+      city:cityKey?r[cityKey]:'',
+      kashrut:kashKey?r[kashKey]:'',
+      seats:seatsKey?parseInt(r[seatsKey])||0:0,
+      access:accessKey?r[accessKey]:''
+    });
+  });
+  return result;
+}
+
+function buildCL(listId,lblId,items){
+  const all=`<div class="dropdown-item"><input type="checkbox" id="${listId}_all" value="__all__" onchange="toggleAll('${listId}','${lblId}',this)"><label for="${listId}_all"><strong>הכל</strong></label></div>`;
+  const opts=items.map((v,i)=>`<div class="dropdown-item"><input type="checkbox" id="${listId}_${i}" value="${escHtml(v)}" onchange="updateLbl('${listId}','${lblId}')"><label for="${listId}_${i}">${escHtml(v)}</label></div>`).join('');
+  document.getElementById(listId).innerHTML=all+opts;
+}
+
+function toggleAll(listId,lblId,el){
+  document.querySelectorAll(`#${listId} input:not([value="__all__"])`).forEach(c=>c.checked=el.checked);
+  updateLbl(listId,lblId);
+}
+
+function updateLbl(listId,lblId){
+  const allCb=document.querySelector(`#${listId} input[value="__all__"]`);
+  const items=[...document.querySelectorAll(`#${listId} input:not([value="__all__"]):checked`)].map(c=>c.value);
+  const total=document.querySelectorAll(`#${listId} input:not([value="__all__"])`).length;
+  if(allCb) allCb.checked=items.length===total;
+  document.getElementById(lblId).textContent=items.length===0||items.length===total?'הכל':items.join(', ');
+  const hallItems=[...document.querySelectorAll('#listHall input:not([value="__all__"]):checked')].map(c=>c.value);
+  const vt=document.getElementById('viewToggle');
+  if(hallItems.length===1){vt.style.display='flex';calHall=hallItems[0];document.getElementById('viewNote').textContent=calHall;}
+  else{vt.style.display='none';calHall='';if(currentView==='calendar')setView('table');}
+}
+
+function getChecked(listId){
+  const all=document.querySelectorAll(`#${listId} input:not([value="__all__"])`);
+  const chk=[...document.querySelectorAll(`#${listId} input:not([value="__all__"]):checked`)];
+  return chk.length===all.length?[]:chk.map(c=>c.value);
+}
+
+function toggleDD(listId,btnId){
+  ['listCity','listKashrut','listHall','listAccess'].forEach(id=>{
+    if(id!==listId){document.getElementById(id).classList.remove('open');const b=document.getElementById(id.replace('list','btn'));if(b)b.classList.remove('open');}
+  });
+  document.getElementById(listId).classList.toggle('open');
+  document.getElementById(btnId).classList.toggle('open');
+}
+
+const _ddIds=[['listCity','btnCity'],['listKashrut','btnKashrut'],['listHall','btnHall'],['listAccess','btnAccess']];
+document.addEventListener('click',e=>{if(!e.target.closest('.dropdown-check'))_ddIds.forEach(([l,b])=>{const le=document.getElementById(l),be=document.getElementById(b);if(le)le.classList.remove('open');if(be)be.classList.remove('open');});},{passive:true});
+
+function getFiltered(){
+  const fv=document.getElementById('filterFrom').value,tv=document.getElementById('filterTo').value;
+  const hv=getChecked('listHall'),cv=getChecked('listCity'),kv=getChecked('listKashrut'),av=getChecked('listAccess');
+  const sm=parseInt(document.getElementById('seatsMin').value)||0,sx=parseInt(document.getElementById('seatsMax').value)||Infinity;
+  return allData.filter(r=>{
+    if(hv.length&&!hv.includes(r.hall))return false;
+    if(cv.length&&!cv.includes(r.city))return false;
+    if(kv.length&&!kv.includes(r.kashrut))return false;
+    if(av.length&&!av.includes(r.access))return false;
+    if(r.seats&&(r.seats<sm||r.seats>sx))return false;
+    if(fv&&r.dateObj<new Date(fv))return false;
+    if(tv&&r.dateObj>new Date(tv))return false;
+    return true;
+  });
+}
+
+function genDates(from,to){const ds=[],d=new Date(from);d.setHours(0,0,0,0);const e=new Date(to);e.setHours(0,0,0,0);while(d<=e){ds.push(new Date(d));d.setDate(d.getDate()+1);}return ds;}
+function sCls(s){if(!s)return 'cell-free';const v=s.trim();return(v==='תפוס'||v==='taken'||v==='booked')?'cell-taken':(v==='שמור'||v==='reserved'||v==='pending')?'cell-reserved':'cell-free';}
+function sTxt(s){if(!s)return 'פנוי';const v=s.trim();return(v==='תפוס'||v==='taken'||v==='booked')?'תפוס':(v==='שמור'||v==='reserved'||v==='pending')?'שמור':'פנוי';}
+
+function buildTable(){
+  const fd=getFiltered();
+  const hv=getChecked('listHall');
+  const savedOrder=safeParse(window._settings&&window._settings.hallOrder,null);
+  let halls=[...new Set(fd.map(r=>r.hall))];
+  if(savedOrder) halls.sort((a,b)=>{const ai=savedOrder.indexOf(a),bi=savedOrder.indexOf(b);return (ai===-1?999:ai)-(bi===-1?999:bi);});
+  else halls.sort();
+  if(hv.length) halls=halls.filter(h=>hv.includes(h));
+  const lk={};fd.forEach(r=>{lk[r.dateKey+'|'+r.hall]=r.status;});
+
+  // If a date is selected, sort free halls first (keeping priority order)
+  if(selectedDateKey){
+    const free=halls.filter(h=>sCls(lk[selectedDateKey+'|'+h])==='cell-free');
+    const other=halls.filter(h=>sCls(lk[selectedDateKey+'|'+h])!=='cell-free');
+    halls=[...free,...other];
+  }
+
+  const today=new Date();today.setHours(0,0,0,0);
+  const end=new Date();end.setDate(today.getDate()+365);
+  const fv=document.getElementById('filterFrom').value,tv=document.getElementById('filterTo').value;
+  const from=fv?new Date(fv):today,to=tv?new Date(tv):end;
+  const dates=genDates(from,to);
+
+  _tableHalls=halls;
+  let hRow='<tr><th class="date-col">תאריך</th>';
+  halls.forEach((h,i)=>{hRow+=`<th class="hall-name-th" onmouseenter="hallHoverStart(${i},event)" onmousemove="hallHoverMove(event)" onmouseleave="hallHoverEnd()" onclick="hallHoverEnd();openHallModal(${i})">${escHtml(h)}</th>`;});
+  hRow+='</tr>';
+  document.getElementById('tableHead').innerHTML=hRow;
+
+  const hiddenDays=localHiddenDays;
+  const colCount=halls.length+1;
+  let body='';
+  let prevWasHidden=false;
+  dates.forEach(d=>{
+    const key=fmtKey(d);
+    const isHidden=hiddenDays.includes(d.getDay())||localHiddenDates.has(key);
+    if(isHidden){
+      if(!prevWasHidden) body+=`<tr class="hidden-day-gap"><td colspan="${colCount}"></td></tr>`;
+      prevWasHidden=true;
+      return;
+    }
+    prevWasHidden=false;
+    const he=toHe(d),greg=key,day=DAYS_HE[d.getDay()];
+    const isSelected=key===selectedDateKey;
+    body+=`<tr><td class="date-cell${isSelected?' selected':''}" onclick="clickDate('${key}')" onmouseenter="dateHoverStart(event)" onmouseleave="dateHoverEnd()" onmousemove="dateHoverMove(event)">${he}<span class="date-greg">${greg} | יום ${day}</span></td>`;
+    halls.forEach(h=>{const s=lk[key+'|'+h]||null;const cls=sCls(s);const txt=sTxt(s);body+=`<td><span class="cell-status ${cls}">${txt}</span></td>`;});
+    body+='</tr>';
+  });
+  document.getElementById('tableBody').innerHTML=body;
+  document.getElementById('mainTable').style.display='table';
+}
+
+function clickDate(key){
+  // Toggle: click same date = reset, click new date = sort
+  selectedDateKey=(selectedDateKey===key)?null:key;
+  dateHoverEnd();
+  buildTable();
+}
+
+// ===== DATE TOOLTIP =====
+const _dateTip=document.getElementById('dateTooltip');
+const _hallTip=document.getElementById('hallTooltip');
+let dateTooltipTimer=null, lastMouseEvent=null;
+
+function dateHoverStart(e){
+  lastMouseEvent=e;
+  clearTimeout(dateTooltipTimer);
+  dateTooltipTimer=setTimeout(()=>{_dateTip.style.display='block';positionTooltip(lastMouseEvent);},500);
+}
+function dateHoverMove(e){
+  lastMouseEvent=e;
+  if(_dateTip.style.display==='block') positionTooltip(e);
+}
+function dateHoverEnd(){
+  clearTimeout(dateTooltipTimer);
+  _dateTip.style.display='none';
+}
+function positionTooltip(e){
+  let x=e.clientX-_dateTip.offsetWidth+20,y=e.clientY-_dateTip.offsetHeight-12;
+  if(x<8)x=8;if(y<8)y=e.clientY+20;
+  _dateTip.style.left=x+'px';_dateTip.style.top=y+'px';
+}
+
+// ===== HALL HOVER PREVIEW =====
+let hallHoverTimer=null, hallModalImages=[], hallModalImgIdx=0;
+let lastHallMouseEvent=null;
+
+function hallHoverStart(i,e){
+  lastHallMouseEvent=e;
+  clearTimeout(hallHoverTimer);
+  hallHoverTimer=setTimeout(()=>{_hallTip.style.display='block';positionHallTooltip(lastHallMouseEvent);},500);
+}
+function hallHoverMove(e){
+  lastHallMouseEvent=e;
+  if(_hallTip.style.display==='block') positionHallTooltip(e);
+}
+function hallHoverEnd(){
+  clearTimeout(hallHoverTimer);
+  _hallTip.style.display='none';
+}
+function positionHallTooltip(e){
+  let x=e.clientX-_hallTip.offsetWidth/2;
+  let y=e.clientY-_hallTip.offsetHeight-12;
+  if(x<8) x=8;
+  if(y<8) y=e.clientY+20;
+  _hallTip.style.left=x+'px';
+  _hallTip.style.top=y+'px';
+}
+
+function openHallModal(i){
+  const name=_tableHalls[i];
+  const details=(window._hallDetails||[]).find(h=>h.name===name);
+  if(!details) return;
+  logHallView(name);
+
+  document.getElementById('hallModalTitle').textContent=details.name;
+
+  // Gallery hidden in table view — images only in halls.html
+  hallModalImages=[];
+  document.getElementById('hallGallery').style.display='none';
+
+  // Fields
+  const rows=[];
+  if(details.city) rows.push(['📍 עיר',escHtml(details.city)]);
+  if(details.street) rows.push(['🏘️ רחוב',escHtml(details.street)]);
+  if(details.phone) rows.push(['📞 טלפון',`<a href="tel:${escHtml(details.phone)}">${escHtml(details.phone)}</a>`]);
+  if(details.kashrut) rows.push(['✡️ כשרות',escHtml(details.kashrut)]);
+  if(details.seats) rows.push(['👥 מקומות',escHtml(String(details.seats))]);
+  if(details.access) rows.push(['♿ נגישות',escHtml(details.access)]);
+  if(details.desc) rows.push(['תיאור',escHtml(details.desc)]);
+  if(details.links&&details.links.length) rows.push(['קישורים',details.links.map(l=>`<a href="${escHtml(l.url)}" target="_blank" rel="noopener">${escHtml(l.label||l.url)}</a>`).join(' ')]);
+  if(details.customFields&&details.customFields.length){
+    details.customFields.filter(f=>f.label&&f.value).forEach(f=>{
+      const val=f.type==='link'?`<a href="${escHtml(f.value)}" target="_blank" rel="noopener" style="display:inline-block;padding:4px 14px;background:#1a1a2e;color:white;border-radius:5px;text-decoration:none;font-size:0.8rem;font-weight:600;">קישור ↗</a>`:escHtml(f.value);
+      rows.push([escHtml(f.label),val]);
+    });
+  }
+  document.getElementById('hallModalFields').innerHTML=rows.map(([l,v])=>`<div class="hall-field-row"><span class="hall-field-label">${l}:</span><span class="hall-field-value">${v}</span></div>`).join('');
+
+  document.getElementById('hallModalOverlay').classList.add('open');
+}
+
+function updateHallGallery(){
+  document.getElementById('hallGalleryNav').style.display=hallModalImages.length>1?'flex':'none';
+  document.getElementById('hallGalleryDots').textContent=hallModalImages.length>1?`${hallModalImgIdx+1} / ${hallModalImages.length}`:'';
+}
+function hallPrevImg(e){
+  e.stopPropagation();
+  if(hallModalImgIdx>0){hallModalImgIdx--;document.getElementById('hallGalleryImg').src=hallModalImages[hallModalImgIdx];updateHallGallery();}
+}
+function hallNextImg(e){
+  e.stopPropagation();
+  if(hallModalImgIdx<hallModalImages.length-1){hallModalImgIdx++;document.getElementById('hallGalleryImg').src=hallModalImages[hallModalImgIdx];updateHallGallery();}
+}
+function openHallFullscreen(){
+  if(!hallModalImages.length) return;
+  document.getElementById('hallFsImage').src=hallModalImages[hallModalImgIdx];
+  const nav=document.getElementById('hallFsNav');
+  nav.style.display=hallModalImages.length>1?'flex':'none';
+  document.getElementById('hallFsCounter').textContent=hallModalImages.length>1?`${hallModalImgIdx+1} / ${hallModalImages.length}`:'';
+  document.getElementById('hallFsOverlay').classList.add('open');
+}
+function closeHallFs(e){
+  if(!e||e.target===document.getElementById('hallFsOverlay'))
+    document.getElementById('hallFsOverlay').classList.remove('open');
+}
+function hallFsPrev(e){
+  e.stopPropagation();
+  if(hallModalImgIdx>0){
+    hallModalImgIdx--;
+    document.getElementById('hallFsImage').src=hallModalImages[hallModalImgIdx];
+    document.getElementById('hallFsCounter').textContent=`${hallModalImgIdx+1} / ${hallModalImages.length}`;
+    document.getElementById('hallGalleryImg').src=hallModalImages[hallModalImgIdx];
+    updateHallGallery();
+  }
+}
+function hallFsNext(e){
+  e.stopPropagation();
+  if(hallModalImgIdx<hallModalImages.length-1){
+    hallModalImgIdx++;
+    document.getElementById('hallFsImage').src=hallModalImages[hallModalImgIdx];
+    document.getElementById('hallFsCounter').textContent=`${hallModalImgIdx+1} / ${hallModalImages.length}`;
+    document.getElementById('hallGalleryImg').src=hallModalImages[hallModalImgIdx];
+    updateHallGallery();
+  }
+}
+
+function closeHallModal(){
+  document.getElementById('hallModalOverlay').classList.remove('open');
+}
+
+function setView(v){
+  currentView=v;
+  document.getElementById('btnTableView').classList.toggle('active',v==='table');
+  document.getElementById('btnCalView').classList.toggle('active',v==='calendar');
+  document.getElementById('tableView').style.display=v==='table'?'block':'none';
+  document.getElementById('calendarView').style.display=v==='calendar'?'block':'none';
+  if(v==='calendar')renderCal();
+}
+
+function renderCal(){
+  if(!calYear){const n=new Date();calYear=n.getFullYear();calMonth=n.getMonth();}
+  const first=new Date(calYear,calMonth,1),last=new Date(calYear,calMonth+1,0);
+  const heM=first.toLocaleDateString('he-IL-u-ca-hebrew',{month:'long',year:'numeric'});
+  document.getElementById('calTitle').textContent=MONTHS_GREG[calMonth]+' '+calYear+' | '+heM;
+  const lk={};
+  allData.filter(r=>r.hall===calHall&&r.dateObj>=first&&r.dateObj<=last).forEach(r=>{lk[r.dateKey]=r.status;});
+  let html='';
+  DAYS_S.forEach(d=>{html+=`<div class="cal-day-header">${d}</div>`;});
+  for(let i=0;i<first.getDay();i++)html+=`<div class="cal-cell empty"></div>`;
+  for(let day=1;day<=last.getDate();day++){
+    const d=new Date(calYear,calMonth,day),key=fmtKey(d),s=lk[key]||null;
+    const he=toHe(d),cls=sCls(s),txt=sTxt(s);
+    const bg=cls==='cell-free'?'#d4f5e4':cls==='cell-taken'?'#fde8e8':'#fef3cd';
+    const cl=cls==='cell-free'?'#1a7a45':cls==='cell-taken'?'#a32020':'#8a5c00';
+    html+=`<div class="cal-cell"><div class="cal-date-he">${he}</div><div class="cal-date-greg">${day}/${calMonth+1}</div><span class="cal-status" style="background:${bg};color:${cl}">${txt}</span></div>`;
+  }
+  document.getElementById('calGrid').innerHTML=html;
+}
+
+function calPrev(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCal();}
+function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCal();}
+function applyFilters(){buildTable();if(currentView==='calendar')renderCal();}
+function resetFilters(){
+  const t=new Date(),e=new Date();e.setDate(t.getDate()+365);
+  document.getElementById('filterFrom').value=toLocalDateStr(t);
+  document.getElementById('filterTo').value=toLocalDateStr(e);
+  _heFrom=''; _heTo='';
+  document.getElementById('heFromDisplay').textContent='-- בחר --';
+  document.getElementById('heToDisplay').textContent='-- בחר --';
+  document.getElementById('heCalPopup').style.display='none';
+  switchDateTab('greg');
+  document.getElementById('lblDate').textContent='הכל';
+  ['listHall','listCity','listKashrut','listAccess'].forEach(id=>{
+    document.querySelectorAll(`#${id} input`).forEach(c=>c.checked=false);
+    document.getElementById(id.replace('list','lbl')).textContent='הכל';
+  });
+  document.getElementById('seatsMin').value='';document.getElementById('seatsMax').value='';
+  document.getElementById('viewToggle').style.display='none';calHall='';
+  if(currentView==='calendar')setView('table');
+  buildTable();
+}
+
+function populateFilters(){
+  const cities=[...new Set(allData.map(r=>r.city).filter(Boolean))].sort();
+  const kash=[...new Set(allData.map(r=>r.kashrut).filter(Boolean))].sort();
+  const savedOrder=safeParse(window._settings&&window._settings.hallOrder,null);
+  const halls=[...new Set(allData.map(r=>r.hall))];
+  if(savedOrder) halls.sort((a,b)=>{const ai=savedOrder.indexOf(a),bi=savedOrder.indexOf(b);return (ai===-1?999:ai)-(bi===-1?999:bi);});
+  else halls.sort();
+  const access=[...new Set(allData.map(r=>r.access).filter(Boolean))].sort();
+  buildCL('listCity','lblCity',cities);
+  buildCL('listKashrut','lblKashrut',kash);
+  buildCL('listHall','lblHall',halls);
+  buildCL('listAccess','lblAccess',access);
+}
+
+// Keyboard shortcut: Ctrl+Shift+A to open admin (admin.html will ask for password)
+document.addEventListener('keydown',function(e){
+  if(e.ctrlKey&&e.shiftKey&&e.key==='A'){
+    e.preventDefault();
+    window.location.href='admin.html';
+  }
+});
+
+function loadSettings(){
+  const s=window._settings||{};
+  if(s.siteName){
+    document.getElementById('heroText').textContent=s.siteName;
+  }
+  if(s.headerColor)document.getElementById('siteHeader').style.background=s.headerColor;
+  if(s.contactEmail){
+    const cb=document.getElementById('contactBtnHeader');
+    if(cb){cb.href='https://mail.google.com/mail/?view=cm&to='+encodeURIComponent(s.contactEmail);cb.target='_blank';cb.style.display='inline-flex';}
+  }
+  // Hero banner slideshow with slide transition
+  let _slides=[];try{_slides=JSON.parse(s.logoSlides||'[]');}catch(e){}
+  if(!_slides.length&&s.logo)_slides=[{url:s.logo,duration:5}];
+  if(_slides.length){
+    const banner=document.getElementById('heroBanner');
+    // Cancel any previous slideshow and remove its layers (loadSettings can be called twice: once from cache, once from network)
+    if(window._slideshowCancel) window._slideshowCancel();
+    banner.querySelectorAll('.slide-layer').forEach(el=>el.remove());
+    const mkLayer=()=>{const d=document.createElement('div');d.className='slide-layer';banner.prepend(d);return d;};
+    const layA=mkLayer(),layB=mkLayer();
+    const preload=url=>{const i=new Image();i.src=url;};
+    let _si=0,_active=layA,_next=layB,_alive=true,_ai=0;
+    const ANIM=1200;
+    const _animMode=s.slideAnimation||'slide';
+    // cycle mode: pick from list each transition
+    let _cycleList=[];
+    if(_animMode==='cycle'){try{_cycleList=JSON.parse(s.slideAnimations||'[]');}catch(e){}}
+    if(!_cycleList.length) _cycleList=['slide','fade','zoom-fade','bloom','drift','lens'];
+    const E_SMOOTH='cubic-bezier(0.4,0,0.2,1)';
+    const E_SLIDE='cubic-bezier(0.77,0,0.18,1)';
+    window._slideshowCancel=()=>{_alive=false;};
+    // apply a single named animation between _active (current) and _next (incoming)
+    const applyAnim=(a)=>{
+      const T=(prop,ms,ease)=>`${prop} ${ms}ms ${ease}`;
+      const TF=(ms,ease)=>T('transform',ms,ease);
+      const OP=(ms,ease)=>T('opacity',ms,ease);
+      if(a==='slide'){
+        _next.style.transition=TF(ANIM,E_SLIDE); _active.style.transition=TF(ANIM,E_SLIDE);
+        _next.style.transform='translateX(0)'; _active.style.transform='translateX(100%)';
+      } else if(a==='slide-right'){
+        _next.style.transition=TF(ANIM,E_SLIDE); _active.style.transition=TF(ANIM,E_SLIDE);
+        _next.style.transform='translateX(0)'; _active.style.transform='translateX(-100%)';
+      } else if(a==='slide-down'){
+        _next.style.transition=TF(ANIM,E_SMOOTH); _active.style.transition=TF(ANIM,E_SMOOTH);
+        _next.style.transform='translateY(0)'; _active.style.transform='translateY(100%)';
+      } else if(a==='slide-up'){
+        _next.style.transition=TF(ANIM,E_SMOOTH); _active.style.transition=TF(ANIM,E_SMOOTH);
+        _next.style.transform='translateY(0)'; _active.style.transform='translateY(-100%)';
+      } else if(a==='fade'){
+        _next.style.transition=OP(ANIM,E_SMOOTH); _active.style.transition=OP(ANIM,E_SMOOTH);
+        _next.style.opacity='1'; _active.style.opacity='0';
+      } else if(a==='zoom-fade'){
+        _next.style.transition=`${OP(ANIM,E_SMOOTH)},${TF(ANIM,E_SMOOTH)}`; _active.style.transition=OP(ANIM,E_SMOOTH);
+        _next.style.opacity='1'; _next.style.transform='scale(1)'; _active.style.opacity='0';
+      } else if(a==='bloom'){
+        _next.style.transition=`${OP(ANIM,E_SMOOTH)},${TF(ANIM,E_SMOOTH)}`; _active.style.transition=`${OP(ANIM,E_SMOOTH)},${TF(ANIM,E_SMOOTH)}`;
+        _next.style.opacity='1'; _next.style.transform='scale(1)'; _active.style.opacity='0'; _active.style.transform='scale(1.06)';
+      } else if(a==='drift'){
+        _next.style.transition=`${OP(ANIM,E_SMOOTH)},${TF(ANIM,E_SMOOTH)}`; _active.style.transition=`${OP(ANIM,E_SMOOTH)},${TF(ANIM,E_SMOOTH)}`;
+        _next.style.opacity='1'; _next.style.transform='translateX(0)'; _active.style.opacity='0'; _active.style.transform='translateX(-4%)';
+      } else if(a==='lens'){
+        _next.style.transition=`${OP(ANIM,E_SMOOTH)},${TF(ANIM,E_SMOOTH)}`; _active.style.transition=`${OP(ANIM,E_SMOOTH)},${TF(ANIM,E_SMOOTH)}`;
+        _next.style.opacity='1'; _next.style.transform='scale(1)'; _active.style.opacity='0'; _active.style.transform='scale(0.93)';
+      } else if(a==='push'){
+        // next pushes current out: they move together
+        _next.style.transition=TF(ANIM,E_SLIDE); _active.style.transition=TF(ANIM,E_SLIDE);
+        _next.style.transform='translateX(0)'; _active.style.transform='translateX(60%)';
+      }
+    };
+    // set initial hidden position for _next based on animation
+    const initNext=(a)=>{
+      _next.style.transition='none'; _next.style.opacity='1'; _next.style.transform='translateX(0) scale(1)';
+      if(a==='slide') _next.style.transform='translateX(-100%)';
+      else if(a==='slide-right') _next.style.transform='translateX(100%)';
+      else if(a==='slide-down') _next.style.transform='translateY(-100%)';
+      else if(a==='slide-up') _next.style.transform='translateY(100%)';
+      else if(a==='fade'||a==='zoom-fade'||a==='lens') { _next.style.opacity='0'; }
+      else if(a==='zoom-fade') { _next.style.transform='scale(1.08)'; _next.style.opacity='0'; }
+      else if(a==='bloom') { _next.style.transform='scale(0.94)'; _next.style.opacity='0'; }
+      else if(a==='drift') { _next.style.transform='translateX(4%)'; _next.style.opacity='0'; }
+      else if(a==='lens') { _next.style.transform='scale(1.12)'; _next.style.opacity='0'; }
+      else if(a==='push') _next.style.transform='translateX(-100%)';
+    };
+    const showSlide=()=>{
+      if(!_alive) return;
+      const curAnim=_animMode==='cycle'?_cycleList[_ai%_cycleList.length]:_animMode;
+      const sl=_slides[_si%_slides.length];
+      const nx=_slides[(_si+1)%_slides.length];
+      _active.style.transition='none'; _active.style.opacity='1'; _active.style.transform='translateX(0) scale(1)';
+      _active.style.backgroundImage=`url('${sl.url}')`;
+      initNext(curAnim);
+      preload(nx.url);
+      _si++; if(_animMode==='cycle') _ai++;
+      setTimeout(()=>{
+        if(!_alive) return;
+        _next.style.backgroundImage=`url('${nx.url}')`;
+        requestAnimationFrame(()=>requestAnimationFrame(()=>{
+          if(!_alive) return;
+          applyAnim(curAnim);
+          setTimeout(()=>{if(!_alive)return;[_active,_next]=[_next,_active];showSlide();},ANIM);
+        }));
+      },(sl.duration||5)*1000);
+    };
+    showSlide();
+  }
+  if(s.heroSubtitle)document.getElementById('heroSubtext').textContent=s.heroSubtitle;
+  const adBottom=document.getElementById('adBottom');
+  if(adBottom){
+    const showBottom=s.showAdBottom!=='false'&&s.showAdBottom!==false;
+    const items=showBottom?safeParse(s.adItemsBottom,[]):[];
+    if(showBottom&&items.length){
+      adBottom.style.display='flex';
+      document.body.classList.add('has-bottom-ad');
+      if(!startAd('Bottom',items)) updateBottomAd(items[0]); // text-only fallback
+    } else {
+      adBottom.style.display='none';
+      document.body.classList.remove('has-bottom-ad');
+    }
+  }
+  const adSide=document.getElementById('adSidebar');
+  if(adSide){
+    const showSide=s.showAdSide!=='false'&&s.showAdSide!==false;
+    if(showSide){
+      adSide.style.display='flex';
+      const items=safeParse(s.adItemsSide,[]);
+      if(items.length&&!startAd('Side',items)) updateSideAd(items[0]); // text-only fallback
+    } else adSide.style.display='none';
+  }
+  const showPopup=s.showAdPopup!=='false'&&s.showAdPopup!==false;
+  if(showPopup){
+    const popupItems=safeParse(s.adItemsPopup,[]);
+    if(popupItems.length){
+      const ad=popupItems[0];
+      const isMobile=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+      const imgUrl=(isMobile&&ad.imgMobile)?ad.imgMobile:ad.img;
+      if(imgUrl||ad.text){
+        const delay=(ad.delay||3)*1000;
+        setTimeout(()=>{
+          const overlay=document.getElementById('popupAdOverlay');
+          const img=document.getElementById('popupAdImg');
+          const lnk=document.getElementById('popupAdLink');
+          if(imgUrl){img.src=imgUrl;img.style.display='block';}else img.style.display='none';
+          if(ad.link){lnk.href=ad.link;}else lnk.removeAttribute('href');
+          overlay.style.display='flex';
+        },delay);
+      }
+    }
+  }
+}
+
+function closePopupAd(){
+  const el=document.getElementById('popupAdOverlay');
+  if(el) el.style.display='none';
+}
+
+let _dateTab='greg';
+function switchDateTab(tab){
+  _dateTab=tab;
+  document.getElementById('dateTabGreg').style.display=tab==='greg'?'flex':'none';
+  document.getElementById('dateTabHeb').style.display=tab==='heb'?'flex':'none';
+  document.getElementById('tabGreg').classList.toggle('active',tab==='greg');
+  document.getElementById('tabHeb').classList.toggle('active',tab==='heb');
+}
+let _heCalMonths=[],_heCalIdx=0,_hePick='from',_heFrom='',_heTo='';
+function buildHeCalMonths(){
+  const s=new Date();s.setDate(s.getDate()-7);
+  const e=new Date();e.setDate(e.getDate()+400);
+  const map=new Map();
+  for(let d=new Date(s);d<=e;d.setDate(d.getDate()+1)){
+    const dt=new Date(d);
+    const key=dt.toLocaleDateString('he-IL-u-ca-hebrew',{month:'long',year:'numeric'});
+    if(!map.has(key))map.set(key,[]);
+    map.get(key).push({greg:new Date(dt),dow:dt.getDay()});
+  }
+  _heCalMonths=[...map.entries()].map(([key,dates])=>({key,dates}));
+  const todayKey=new Date().toLocaleDateString('he-IL-u-ca-hebrew',{month:'long',year:'numeric'});
+  _heCalIdx=Math.max(0,_heCalMonths.findIndex(m=>m.key===todayKey));
+}
+function showHePicker(target){
+  _hePick=target;
+  if(!_heCalMonths.length)buildHeCalMonths();
+  const p=document.getElementById('heCalPopup');
+  p.style.display=p.style.display==='none'?'block':'none';
+  if(p.style.display==='block')renderHeCal();
+}
+function renderHeCal(){
+  const mo=_heCalMonths[_heCalIdx];if(!mo)return;
+  const f=mo.dates[0].greg;
+  const mName=f.toLocaleDateString('he-IL-u-ca-hebrew',{month:'long'});
+  const yName=f.toLocaleDateString('he-IL-u-ca-hebrew',{year:'numeric'});
+  document.getElementById('heCalTitle').textContent=mName+' '+yName;
+  const dataSet=new Set(allData.map(r=>toLocalDateStr(r.dateObj)));
+  let html='';
+  ['א׳','ב׳','ג׳','ד׳','ה׳','ו׳','ש׳'].forEach(d=>{html+=`<div class="he-cal-dh">${d}</div>`;});
+  for(let i=0;i<mo.dates[0].dow;i++)html+=`<div class="he-cal-cell"></div>`;
+  mo.dates.forEach((dt,i)=>{
+    const gs=toLocalDateStr(dt.greg);
+    const dayLbl=HD[i+1]||String(i+1);
+    let cls='he-cal-cell hcv';
+    if(dataSet.has(gs))cls+=' hcd';
+    if(gs===_heFrom||gs===_heTo)cls+=' hcs';
+    else if(_heFrom&&_heTo&&gs>_heFrom&&gs<_heTo)cls+=' hcr';
+    html+=`<div class="${cls}" onclick="selectHeDate('${gs}')">${dayLbl}</div>`;
+  });
+  document.getElementById('heCalGrid').innerHTML=html;
+}
+function heCalNav(dir){
+  _heCalIdx=Math.max(0,Math.min(_heCalMonths.length-1,_heCalIdx+dir));
+  renderHeCal();
+}
+function selectHeDate(gs){
+  const d=new Date(gs+'T00:00:00');
+  if(_hePick==='from'){_heFrom=gs;document.getElementById('heFromDisplay').textContent=toHe(d);}
+  else{_heTo=gs;document.getElementById('heToDisplay').textContent=toHe(d);}
+  renderHeCal();
+}
+function updateDateLabel(){
+  const fv=document.getElementById('filterFrom').value;
+  const tv=document.getElementById('filterTo').value;
+  const today=toLocalDateStr(new Date());
+  const defTo=toLocalDateStr(new Date(Date.now()+365*864e5));
+  if((!fv&&!tv)||(fv===today&&tv===defTo)){document.getElementById('lblDate').textContent='הכל';return;}
+  const lbl=(fv?fv.split('-').reverse().join('/'):'')+(tv?' – '+tv.split('-').reverse().join('/'):'');
+  document.getElementById('lblDate').textContent=lbl;
+}
+function applyDateFilter(){
+  if(_dateTab==='heb'){
+    if(_heFrom)document.getElementById('filterFrom').value=_heFrom;
+    if(_heTo)document.getElementById('filterTo').value=_heTo;
+  }
+  updateDateLabel();
+  toggleDD('listDate','btnDate');
+  applyFilters();
+}
+
+const CACHE_KEY='hallCacheV2';
+
+// The table only ever shows today→+365d. Drop rows outside a [-7d,+400d] window
+// so we don't parse/cache ~24 years of data (152K rows / 8MB) to show one year.
+function trimAvail(rows){
+  if(!Array.isArray(rows)||!rows.length) return rows||[];
+  const now=new Date();now.setHours(0,0,0,0);
+  const loT=now.getTime()-7*864e5, hiT=now.getTime()+400*864e5;
+  const dateKey=Object.keys(rows[0]).find(k=>k.toLowerCase().indexOf('date')>-1);
+  if(!dateKey) return rows;
+  const out=[];
+  for(let i=0;i<rows.length;i++){
+    const raw=(rows[i][dateKey]||'')+'';let t=NaN,p;
+    if(raw.indexOf('/')>-1){p=raw.split('/');t=new Date(+p[2],+p[1]-1,+p[0]).getTime();}
+    else if(raw.indexOf('T')>-1||raw.indexOf(':')>-1){t=Date.parse(raw);}
+    else if(raw.indexOf('-')>-1){p=raw.split('-');t=new Date(+p[0],+p[1]-1,+p[2]).getTime();}
+    if(isNaN(t)||(t>=loT&&t<=hiT)) out.push(rows[i]); // keep in-window or unparseable
+  }
+  return out;
+}
+
+// Process + render a complete data triplet. Returns true if data was usable.
+function applyData(availData,settingsData,hallsData){
+  settingsData=settingsData||{};hallsData=hallsData||[];
+  window._settings=settingsData;
+  window._hallDetails=hallsData;
+  initDayToggles();
+  allData=parseAPI(availData);
+  if(!allData.length) return false;
+  const map={};
+  (hallsData||[]).forEach(d=>{map[d.name]={city:d.city||'',kashrut:d.kashrut||'',access:d.access||'',seats:parseInt(d.seats)||0};});
+  allData.forEach(r=>{if(map[r.hall]){r.city=map[r.hall].city;r.kashrut=map[r.hall].kashrut;r.access=map[r.hall].access;r.seats=map[r.hall].seats;}});
+  populateFilters();
+  if(!document.getElementById('filterFrom').value){
+    const t=new Date(),e=new Date();e.setDate(t.getDate()+365);
+    document.getElementById('filterFrom').value=toLocalDateStr(t);
+    document.getElementById('filterTo').value=toLocalDateStr(e);
+  }
+  document.getElementById('loading').style.display='none';
+  buildTable();
+  loadSettings();
+  return true;
+}
+
+async function fetchData(){
+  _lastFetchAt=Date.now();
+  sessionStorage.removeItem('hd');sessionStorage.removeItem('ht');
+  try{localStorage.removeItem('hallCacheV1');}catch(e){} // drop legacy oversized cache
+  // 1) Instant render from cache (stale-while-revalidate)
+  let renderedFromCache=false, cachedRaw=null;
+  try{
+    cachedRaw=localStorage.getItem(CACHE_KEY);
+    if(cachedRaw){
+      const c=JSON.parse(cachedRaw);
+      renderedFromCache=applyData(c.avail,c.settings,c.halls);
+    }
+  }catch(e){}
+  // 2) Refresh from network — in background if cache already rendered
+  const _timeoutMs=10000;
+  const _ac=new AbortController();
+  const _timer=setTimeout(()=>_ac.abort(),_timeoutMs);
+  try{
+    const _today=new Date();_today.setHours(0,0,0,0);
+    const _lo=new Date(_today.getTime()-7*864e5);
+    const _hi=new Date(_today.getTime()+400*864e5);
+    async function fetchAllAvailability(){
+      // קריאה מטבלת "זמינות" הרחבה (עמודה=אולם, שורה=תאריך)
+      const {data,error}=await sb.from('זמינות').select('*')
+        .gte('תאריך',toLocalDateStr(_lo)).lte('תאריך',toLocalDateStr(_hi))
+        .order('תאריך',{ascending:true})
+        .abortSignal(_ac.signal);
+      if(error) throw error;
+      // המרה מפורמט רחב לפורמט ארוך {date, hall, status} שparseAPI מצפה לו
+      const rows=[];
+      (data||[]).forEach(row=>{
+        const date=row['תאריך'];
+        Object.keys(row).forEach(col=>{
+          if(col==='תאריך') return;
+          rows.push({date, hall_name:col, status:row[col]||'פנוי'});
         });
-        
-        function formatDate(dateStr) {
-            const date = new Date(dateStr + 'T00:00:00');
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            return date.toLocaleDateString('he-IL', options);
-        }
-        
-        function showError(msg) {
-            error.textContent = msg;
-            error.classList.add('show');
-        }
-    </script>
+      });
+      return rows;
+    }
+    const [availRows,r2,r3]=await Promise.all([
+      fetchAllAvailability(),
+      sb.from('settings').select('*').abortSignal(_ac.signal),
+      sb.from('halls').select('*').abortSignal(_ac.signal)
+    ]);
+    if(r2.error) throw r2.error;
+    if(r3.error) throw r3.error;
+    const availData=trimAvail(availRows||[]);
+    // settings מגיע מ-Supabase כשורות key/value — הופכים לאובייקט שטוח כמו שהיה מ-Apps Script
+    const settingsData={};
+    (r2.data||[]).forEach(row=>{settingsData[row.key]=row.value;});
+    const hallsData=r3.data||[];
+    const fresh=JSON.stringify({avail:availData,settings:settingsData,halls:hallsData});
+    // Data unchanged since cache render → skip the expensive second render
+    if(renderedFromCache&&cachedRaw===fresh) return;
+    const ok=applyData(availData,settingsData,hallsData);
+    if(ok){
+      document.getElementById('errorMsg').style.display='none';
+      try{localStorage.setItem(CACHE_KEY,fresh);}catch(e){}
+    } else if(!renderedFromCache){
+      throw new Error('empty');
+    }
+  }catch(err){
+    if(!renderedFromCache&&!allData.length){
+      document.getElementById('loading').style.display='none';
+      document.getElementById('errorMsg').style.display='block';
+      document.getElementById('errorMsgText').textContent='שגיאה בטעינת הנתונים.';
+    }
+  }finally{
+    clearTimeout(_timer);
+  }
+}
+
+function toggleSidebar(){
+  const sb=document.getElementById('mainSidebar');
+  const ov=document.getElementById('sidebarOverlay');
+  sb.classList.toggle('open');
+  ov.classList.toggle('open');
+}
+
+function cookieConsentChoice(accepted){
+  try{localStorage.setItem('cookieConsent',accepted?'granted':'denied');}catch(e){}
+  if(accepted&&typeof gtag==='function'){
+    gtag('consent','update',{'analytics_storage':'granted','ad_storage':'granted'});
+  }
+  document.getElementById('cookieBanner').classList.remove('show');
+}
+(function initCookieBanner(){
+  let saved=null;
+  try{saved=localStorage.getItem('cookieConsent');}catch(e){}
+  if(saved==='granted'){
+    if(typeof gtag==='function') gtag('consent','update',{'analytics_storage':'granted','ad_storage':'granted'});
+    return;
+  }
+  if(saved==='denied') return; // המשתמש כבר בחר לדחות, לא מציגים שוב
+  document.getElementById('cookieBanner').classList.add('show');
+})();
+
+const REFRESH_INTERVAL_MS=300000; // 5 דקות
+let _lastFetchAt=Date.now();
+fetchData();
+let _refreshTimer=setInterval(fetchData,REFRESH_INTERVAL_MS); // רענון אוטומטי כל 5 דקות, רק כשהטאב גלוי
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){
+    clearInterval(_refreshTimer);
+  }else{
+    if(Date.now()-_lastFetchAt>=REFRESH_INTERVAL_MS) fetchData();
+    _refreshTimer=setInterval(fetchData,REFRESH_INTERVAL_MS);
+  }
+});
+// logVisit ו-logDuration הושבתו כדי לחסוך במכסת הרצות (360 דק'/יום).
+</script>
 </body>
 </html>
