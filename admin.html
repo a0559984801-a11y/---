@@ -1310,7 +1310,7 @@ async function loadRecentAvailability(){
     const end=new Date(today.getTime()+30*864e5);
     const toStr=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
     // קריאה מטבלת "זמינות" הרחבה — שליפת עמודת האולם הרלוונטי
-    const {data,error}=await sb.from('זמינות').select(`תאריך,${hall}`).gte('תאריך',toStr(today)).lte('תאריך',toStr(end)).order('תאריך',{ascending:true});
+    const {data,error}=await sb.from('זמינות').select('*').gte('תאריך',toStr(today)).lte('תאריך',toStr(end)).order('תאריך',{ascending:true});
     if(error) throw error;
     if(!data||!data.length){ list.innerHTML='<span style="color:#999">אין נתוני זמינות לאולם זה בטווח הקרוב</span>'; return; }
     list.innerHTML=data.map(r=>{
