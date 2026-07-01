@@ -362,24 +362,34 @@ textarea{resize:vertical;min-height:70px;}
     <!-- AVAILABILITY MANUAL OVERRIDE -->
     <div class="panel" id="panel-availability">
       <h2>📆 עדכון זמינות ידני</h2>
-      <div class="card">
-        <p style="font-size:0.82rem;color:#666;margin-bottom:16px">סימון ידני ומיידי של תאריך כפנוי/תפוס לאולם נבחר. עדכון זה משפיע מיד על האתר, ללא צורך בהרצת סנכרון.</p>
-        <label>אולם</label>
-        <select id="availHallSelect"></select>
-        <label>תאריך</label>
-        <input type="date" id="availDateInput"/>
-        <label>סטטוס</label>
-        <select id="availStatusSelect">
-          <option value="פנוי">פנוי</option>
-          <option value="תפוס">תפוס</option>
-        </select>
-        <button class="btn-save" onclick="saveManualAvailability()" style="margin-top:12px;">💾 עדכן</button>
-        <div class="ok" id="availOk">✓ עודכן!</div>
-        <div class="err" id="availErr" style="display:none;"></div>
+      <div class="card" style="padding:12px;">
+        <!-- שורת בחירת אולם + טוגל שפה -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+          <select id="availHallSelect" style="flex:1;min-width:140px;font-size:0.88rem;padding:6px 10px;border:1px solid #ddd;border-radius:6px;"></select>
+          <button id="availLangToggle" onclick="toggleCalLang()" style="padding:5px 12px;border:1px solid #ddd;border-radius:6px;background:#f5f5f5;cursor:pointer;font-size:0.82rem;">עברי</button>
+        </div>
+        <!-- ניווט חודש -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <button onclick="calNav(-1)" style="padding:4px 12px;border:1px solid #ddd;border-radius:6px;background:#f5f5f5;cursor:pointer;font-size:1rem;">‹</button>
+          <span id="calMonthTitle" style="font-weight:700;font-size:0.95rem;color:#1a1a2e;"></span>
+          <button onclick="calNav(1)" style="padding:4px 12px;border:1px solid #ddd;border-radius:6px;background:#f5f5f5;cursor:pointer;font-size:1rem;">›</button>
+        </div>
+        <!-- לוח שנה -->
+        <div id="availCalendar" style="min-height:200px;"></div>
+        <div id="availCalMsg" style="font-size:0.82rem;color:#999;text-align:center;padding:8px 0;display:none;"></div>
       </div>
-      <div class="card">
-        <p style="font-size:0.82rem;color:#666;margin-bottom:10px">תאריכים קרובים שעודכנו ידנית לאולם הנבחר (30 הימים הקרובים)</p>
-        <div id="availRecentList" style="font-size:0.82rem;"></div>
+      <!-- מודאל בחירת סטטוס -->
+      <div id="availModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;align-items:center;justify-content:center;">
+        <div style="background:#fff;border-radius:12px;padding:22px 26px;min-width:240px;box-shadow:0 8px 32px rgba(0,0,0,0.18);text-align:center;">
+          <div id="availModalTitle" style="font-weight:700;font-size:1rem;color:#1a1a2e;margin-bottom:6px;"></div>
+          <div id="availModalDate" style="font-size:0.82rem;color:#666;margin-bottom:18px;"></div>
+          <div style="display:flex;gap:10px;justify-content:center;margin-bottom:16px;">
+            <button onclick="setDayStatus('פנוי')" style="padding:8px 18px;border-radius:7px;border:2px solid #1a7a45;background:#d4f5e4;color:#1a7a45;font-weight:700;cursor:pointer;font-size:0.9rem;">✅ פנוי</button>
+            <button onclick="setDayStatus('תפוס')" style="padding:8px 18px;border-radius:7px;border:2px solid #a32020;background:#fde8e8;color:#a32020;font-weight:700;cursor:pointer;font-size:0.9rem;">❌ תפוס</button>
+          </div>
+          <button onclick="closeAvailModal()" style="padding:5px 18px;border-radius:6px;border:1px solid #ddd;background:#f5f5f5;cursor:pointer;font-size:0.85rem;color:#666;">ביטול</button>
+          <div id="availModalErr" style="color:#a32020;font-size:0.8rem;margin-top:8px;display:none;"></div>
+        </div>
       </div>
     </div>
     </div>
@@ -1271,57 +1281,133 @@ async function saveHiddenDates(){
   showOk('hiddenDatesOk');
 }
 
-// ===== AVAILABILITY MANUAL OVERRIDE =====
+// ===== AVAILABILITY CALENDAR =====
+let _calYear=new Date().getFullYear(), _calMonth=new Date().getMonth();
+let _calHall='', _calData={}, _calLang='he';
+let _modalDate='', _modalStatus='';
+
+const _HE_DAYS=['א','ב','ג','ד','ה','ו','ש'];
+const _EN_DAYS=['Su','Mo','Tu','We','Th','Fr','Sa'];
+const _HE_MONTHS=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+const _EN_MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+
 function initAvailabilityTab(){
   const sel=document.getElementById('availHallSelect');
-  sel.innerHTML=halls.map(h=>`<option value="${escHtml(h.name)}">${escHtml(h.name)}</option>`).join('');
-  if(!document.getElementById('availDateInput').value){
-    const t=new Date();
-    document.getElementById('availDateInput').value=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
-  }
-  loadRecentAvailability();
-  sel.onchange=loadRecentAvailability;
+  sel.innerHTML='<option value="">— בחר אולם —</option>'+halls.map(h=>`<option value="${escHtml(h.name)}">${escHtml(h.name)}</option>`).join('');
+  sel.onchange=()=>{ _calHall=sel.value; _calData={}; renderCalendar(); if(_calHall) loadCalMonth(); };
+  _calYear=new Date().getFullYear(); _calMonth=new Date().getMonth();
+  renderCalendar();
 }
 
-async function saveManualAvailability(){
-  const hall=document.getElementById('availHallSelect').value;
-  const date=document.getElementById('availDateInput').value;
-  const status=document.getElementById('availStatusSelect').value;
-  const err=document.getElementById('availErr'); err.style.display='none';
-  if(!hall||!date){ err.textContent='יש לבחור אולם ותאריך'; err.style.display='block'; return; }
+function toggleCalLang(){
+  _calLang=_calLang==='he'?'en':'he';
+  document.getElementById('availLangToggle').textContent=_calLang==='he'?'עברי':'English';
+  renderCalendar();
+}
+
+function calNav(dir){
+  _calMonth+=dir;
+  if(_calMonth>11){_calMonth=0;_calYear++;}
+  if(_calMonth<0){_calMonth=11;_calYear--;}
+  renderCalendar();
+  if(_calHall) loadCalMonth();
+}
+
+function toDateStr(y,m,d){
+  return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+}
+
+async function loadCalMonth(){
+  const firstDay=toDateStr(_calYear,_calMonth,1);
+  const lastDay=toDateStr(_calYear,_calMonth,new Date(_calYear,_calMonth+1,0).getDate());
+  document.getElementById('availCalMsg').textContent='טוען...';
+  document.getElementById('availCalMsg').style.display='block';
   try{
-    // כותב ישירות לתא המתאים בטבלת "זמינות" הרחבה
-    const {error}=await sb.from('זמינות').update({[hall]:status}).eq('תאריך',date);
+    const {data,error}=await sb.from('זמינות').select('*')
+      .gte('תאריך',firstDay).lte('תאריך',lastDay).order('תאריך',{ascending:true});
     if(error) throw error;
-    showOk('availOk');
-    loadRecentAvailability();
+    _calData={};
+    (data||[]).forEach(r=>{ _calData[r['תאריך']]=r[_calHall]||'פנוי'; });
+    document.getElementById('availCalMsg').style.display='none';
+    renderCalendar();
   }catch(e){
-    err.textContent='שגיאה בעדכון: '+(e.message||e);
-    err.style.display='block';
+    document.getElementById('availCalMsg').textContent='שגיאה בטעינה';
   }
 }
 
-async function loadRecentAvailability(){
-  const hall=document.getElementById('availHallSelect').value;
-  const list=document.getElementById('availRecentList');
-  if(!hall){ list.innerHTML=''; return; }
-  list.innerHTML='טוען...';
+function renderCalendar(){
+  const months=_calLang==='he'?_HE_MONTHS:_EN_MONTHS;
+  const days=_calLang==='he'?_HE_DAYS:_EN_DAYS;
+  document.getElementById('calMonthTitle').textContent=months[_calMonth]+' '+_calYear;
+
+  const today=new Date(); today.setHours(0,0,0,0);
+  const firstDow=new Date(_calYear,_calMonth,1).getDay();
+  const daysInMonth=new Date(_calYear,_calMonth+1,0).getDate();
+
+  let html=`<table style="width:100%;border-collapse:collapse;table-layout:fixed;">`;
+  // כותרת ימים
+  html+=`<tr>`;
+  days.forEach(d=>{ html+=`<th style="text-align:center;font-size:0.75rem;color:#666;padding:4px 0;font-weight:600;">${d}</th>`; });
+  html+=`</tr><tr>`;
+
+  // תאים ריקים לפני תחילת החודש
+  for(let i=0;i<firstDow;i++) html+=`<td></td>`;
+
+  let dow=firstDow;
+  for(let d=1;d<=daysInMonth;d++){
+    const dateStr=toDateStr(_calYear,_calMonth,d);
+    const cellDate=new Date(_calYear,_calMonth,d);
+    const isPast=cellDate<today;
+    const status=_calData[dateStr]||(_calHall?'פנוי':'');
+    let bg='#f0f0f0', color='#999', cursor='default', border='none';
+    if(_calHall && !isPast){
+      if(status==='תפוס'){bg='#fde8e8';color='#a32020';cursor='pointer';border='1px solid #f5b0b0';}
+      else{bg='#d4f5e4';color='#1a7a45';cursor='pointer';border='1px solid #8edfb9';}
+    } else if(isPast && _calHall){
+      bg='#f5f5f5';color='#bbb';
+    }
+    const click=(_calHall&&!isPast)?`onclick="openAvailModal('${dateStr}','${escHtml(status)}')"` :'';
+    html+=`<td ${click} style="text-align:center;padding:3px 1px;cursor:${cursor};">
+      <div style="border-radius:6px;background:${bg};color:${color};border:${border};padding:5px 2px;font-size:0.82rem;font-weight:600;user-select:none;">${d}</div>
+    </td>`;
+    dow++;
+    if(dow===7 && d<daysInMonth){ html+=`</tr><tr>`; dow=0; }
+  }
+  // תאים ריקים בסוף
+  while(dow>0&&dow<7){ html+=`<td></td>`; dow++; }
+  html+=`</tr></table>`;
+  document.getElementById('availCalendar').innerHTML=html;
+}
+
+function openAvailModal(dateStr, currentStatus){
+  _modalDate=dateStr;
+  _modalStatus=currentStatus;
+  document.getElementById('availModalTitle').textContent=_calHall;
+  // תצוגת תאריך יפה
+  const parts=dateStr.split('-');
+  const months=_calLang==='he'?['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר']:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('availModalDate').textContent=parseInt(parts[2])+' '+months[parseInt(parts[1])-1]+' '+parts[0];
+  document.getElementById('availModalErr').style.display='none';
+  const modal=document.getElementById('availModal');
+  modal.style.display='flex';
+}
+
+function closeAvailModal(){
+  document.getElementById('availModal').style.display='none';
+}
+
+async function setDayStatus(status){
+  const errEl=document.getElementById('availModalErr');
+  errEl.style.display='none';
   try{
-    const today=new Date();today.setHours(0,0,0,0);
-    const end=new Date(today.getTime()+30*864e5);
-    const toStr=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-    // קריאה מטבלת "זמינות" הרחבה — שליפת עמודת האולם הרלוונטי
-    const {data,error}=await sb.from('זמינות').select('*').gte('תאריך',toStr(today)).lte('תאריך',toStr(end)).order('תאריך',{ascending:true});
+    const {error}=await sb.from('זמינות').update({[_calHall]:status}).eq('תאריך',_modalDate);
     if(error) throw error;
-    if(!data||!data.length){ list.innerHTML='<span style="color:#999">אין נתוני זמינות לאולם זה בטווח הקרוב</span>'; return; }
-    list.innerHTML=data.map(r=>{
-      const status=r[hall]||'פנוי';
-      const color=status==='תפוס'?'#a32020':'#1a7a45';
-      const bg=status==='תפוס'?'#fde8e8':'#d4f5e4';
-      return `<div style="display:flex;justify-content:space-between;padding:4px 8px;border-bottom:1px solid #f0f0f0;"><span>${escHtml(r['תאריך'])}</span><span style="color:${color};background:${bg};border-radius:4px;padding:1px 8px;font-weight:700;font-size:0.78rem;">${escHtml(status)}</span></div>`;
-    }).join('');
+    _calData[_modalDate]=status;
+    renderCalendar();
+    closeAvailModal();
   }catch(e){
-    list.innerHTML='<span style="color:#a32020">שגיאה בטעינת הנתונים</span>';
+    errEl.textContent='שגיאה: '+(e.message||e);
+    errEl.style.display='block';
   }
 }
 
