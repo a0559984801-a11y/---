@@ -1431,10 +1431,10 @@ function cookieConsentChoice(accepted){
   document.getElementById('cookieBanner').classList.add('show');
 })();
 
-const REFRESH_INTERVAL_MS=300000; // 5 דקות
+const REFRESH_INTERVAL_MS=60000; // 1 דקה
 let _lastFetchAt=Date.now();
 fetchData();
-let _refreshTimer=setInterval(fetchData,REFRESH_INTERVAL_MS); // רענון אוטומטי כל 5 דקות, רק כשהטאב גלוי
+let _refreshTimer=setInterval(fetchData,REFRESH_INTERVAL_MS); // רענון אוטומטי כל דקה
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden){
     clearInterval(_refreshTimer);
