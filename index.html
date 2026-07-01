@@ -1356,19 +1356,22 @@ async function fetchData(){
     const _lo=new Date(_today.getTime()-7*864e5);
     const _hi=new Date(_today.getTime()+400*864e5);
     async function fetchAllAvailability(){
-      const pageSize=1000;
-      let from=0, all=[], done=false;
-      while(!done){
-        const {data,error}=await sb.from('availability').select('*')
-          .gte('date',toLocalDateStr(_lo)).lte('date',toLocalDateStr(_hi))
-          .order('id',{ascending:true})
-          .range(from,from+pageSize-1)
-          .abortSignal(_ac.signal);
-        if(error) throw error;
-        all=all.concat(data||[]);
-        if(!data||data.length<pageSize) done=true; else from+=pageSize;
-      }
-      return all;
+      // קריאה מטבלת "זמינות" הרחבה (עמודה=אולם, שורה=תאריך)
+      const {data,error}=await sb.from('זמינות').select('*')
+        .gte('תאריך',toLocalDateStr(_lo)).lte('תאריך',toLocalDateStr(_hi))
+        .order('תאריך',{ascending:true})
+        .abortSignal(_ac.signal);
+      if(error) throw error;
+      // המרה מפורמט רחב לפורמט ארוך {date, hall, status} שparseAPI מצפה לו
+      const rows=[];
+      (data||[]).forEach(row=>{
+        const date=row['תאריך'];
+        Object.keys(row).forEach(col=>{
+          if(col==='תאריך') return;
+          rows.push({date, hall_name:col, status:row[col]||'פנוי'});
+        });
+      });
+      return rows;
     }
     const [availRows,r2,r3]=await Promise.all([
       fetchAllAvailability(),

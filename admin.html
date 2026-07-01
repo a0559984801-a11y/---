@@ -681,8 +681,9 @@ async function loadAll(){
     }));
     // If no halls in הטבלה, auto-populate from availability
     if(!halls.length){
-      const {data:avail}=await sb.from('availability').select('hall_name').limit(1000);
-      const names=[...new Set((avail||[]).map(r=>r.hall_name))];
+      // fallback: נסה לזהות אולמות מעמודות טבלת "זמינות"
+      const {data:avail}=await sb.from('זמינות').select('*').limit(1);
+      const names=avail&&avail.length?Object.keys(avail[0]).filter(k=>k!=='תאריך'):[];
       halls=names.map(n=>({name:n,city:'',kashrut:'',access:'',seats:'',desc:'',img:'',vid:'',links:[]}));
     }
     applySettings();
@@ -1288,16 +1289,9 @@ async function saveManualAvailability(){
   const err=document.getElementById('availErr'); err.style.display='none';
   if(!hall||!date){ err.textContent='יש לבחור אולם ותאריך'; err.style.display='block'; return; }
   try{
-    // בודקים אם כבר קיימת שורה לתאריך הזה לאולם הזה — אם כן מעדכנים, אחרת מוסיפים
-    const {data:existing,error:selErr}=await sb.from('availability').select('id').eq('hall_name',hall).eq('date',date).limit(1);
-    if(selErr) throw selErr;
-    if(existing&&existing.length){
-      const {error}=await sb.from('availability').update({status}).eq('id',existing[0].id);
-      if(error) throw error;
-    }else{
-      const {error}=await sb.from('availability').insert({hall_name:hall,date,status});
-      if(error) throw error;
-    }
+    // כותב ישירות לתא המתאים בטבלת "זמינות" הרחבה
+    const {error}=await sb.from('זמינות').update({[hall]:status}).eq('תאריך',date);
+    if(error) throw error;
     showOk('availOk');
     loadRecentAvailability();
   }catch(e){
@@ -1315,13 +1309,15 @@ async function loadRecentAvailability(){
     const today=new Date();today.setHours(0,0,0,0);
     const end=new Date(today.getTime()+30*864e5);
     const toStr=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-    const {data,error}=await sb.from('availability').select('date,status').eq('hall_name',hall).gte('date',toStr(today)).lte('date',toStr(end)).order('date',{ascending:true});
+    // קריאה מטבלת "זמינות" הרחבה — שליפת עמודת האולם הרלוונטי
+    const {data,error}=await sb.from('זמינות').select(`תאריך,${hall}`).gte('תאריך',toStr(today)).lte('תאריך',toStr(end)).order('תאריך',{ascending:true});
     if(error) throw error;
     if(!data||!data.length){ list.innerHTML='<span style="color:#999">אין נתוני זמינות לאולם זה בטווח הקרוב</span>'; return; }
     list.innerHTML=data.map(r=>{
-      const color=r.status==='תפוס'?'#a32020':'#1a7a45';
-      const bg=r.status==='תפוס'?'#fde8e8':'#d4f5e4';
-      return `<div style="display:flex;justify-content:space-between;padding:4px 8px;border-bottom:1px solid #f0f0f0;"><span>${escHtml(r.date)}</span><span style="color:${color};background:${bg};border-radius:4px;padding:1px 8px;font-weight:700;font-size:0.78rem;">${escHtml(r.status)}</span></div>`;
+      const status=r[hall]||'פנוי';
+      const color=status==='תפוס'?'#a32020':'#1a7a45';
+      const bg=status==='תפוס'?'#fde8e8':'#d4f5e4';
+      return `<div style="display:flex;justify-content:space-between;padding:4px 8px;border-bottom:1px solid #f0f0f0;"><span>${escHtml(r['תאריך'])}</span><span style="color:${color};background:${bg};border-radius:4px;padding:1px 8px;font-weight:700;font-size:0.78rem;">${escHtml(status)}</span></div>`;
     }).join('');
   }catch(e){
     list.innerHTML='<span style="color:#a32020">שגיאה בטעינת הנתונים</span>';
