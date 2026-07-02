@@ -1,10 +1,9 @@
-ab.classList.add('hidden-day'); });.day-toggles{display:.day-toggles{display:flex;flex-wrap:wrap;gap:3px;}
-.day-toggle-btn.adminab.classList.add('admin-hidden-day'); });-hidden-day{display:none!important;}grid;grid-template-columns:repeat(7,1fr);gap:3px;}<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Pavolicy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https: data: blob:; media-src 'self' https:; connect-src 'self' https://mzrnwtwyuligsaxeoxhh.supabase.co https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com; frame-src 'none'; object-src 'none'; base-uri 'self';">
-<meta http-equiv="X-Content-Type-Options" content="nosniff">hh
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https: data: blob:; media-src 'self' https:; connect-src 'self' https://mzrnwtwyuligsaxeoxhh.supabase.co https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com; frame-src 'none'; object-src 'none'; base-uri 'self';">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1446,8 +1445,7 @@ let _refreshTimer=setInterval(fetchData,REFRESH_INTERVAL_MS); // רענון או
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden){
     clearInterval(_refreshTimer);
-  }else{
-    if(Date.now()-_lastFetchAt>=REFRESH_INTERVAL_MS) fetchData();
+fix: properly hide admin-hidden days from filter bar    if(Date.now()-_lastFetchAt>=REFRESH_INTERVAL_MS) fetchData();
     _refreshTimer=setInterval(fetchData,REFRESH_INTERVAL_MS);
   }
 });
