@@ -1360,6 +1360,7 @@ async function fetchData(){
       const {data,error}=await sb.from('זמינות').select('*')
         .gte('תאריך',toLocalDateStr(_lo)).lte('תאריך',toLocalDateStr(_hi))
         .order('תאריך',{ascending:true})
+        .limit(1000)
         .abortSignal(_ac.signal);
       if(error) throw error;
       // המרה מפורמט רחב לפורמט ארוך {date, hall, status} שparseAPI מצפה לו
