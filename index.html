@@ -1331,7 +1331,7 @@ function applyData(availData,settingsData,hallsData){
   }
   document.getElementById('loading').style.display='none';
   buildTable();
-  loadSettings();
+  if(!window._settingsLoaded){window._settingsLoaded=true;loadSettings();}
   return true;
 }
 
