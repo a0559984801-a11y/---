@@ -1458,8 +1458,8 @@ document.getElementById('advertiseBtnHeader').addEventListener('click',e=>{
   const email=s.advertiseEmail||s.contactEmail||'';
   if(!email){alert('מייל פרסום לא מוגדר בניהול');return;}
   const subject='בקשה למידע על פרסום באתר אולם-בקליק';
-  const body='שלום,\n\nרוצה לקבל פרטים על פרסום באתר אולם-בקליק.\n\nפרטי הפרסום:\n[אנא מלא כאן את פרטיך]\n\nתודה,';
-  window.location.href=`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  const body='שלום,\n\nרוצה לקבל פרטים על פרסום באתר אולם-בקליק.\n\
+    window.location.href=`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 });
 </script>
 </body>
