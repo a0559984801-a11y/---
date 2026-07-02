@@ -419,7 +419,9 @@ textarea{resize:vertical;min-height:70px;}
       <div class="card">
         <label>מייל ליצירת קשר</label>
         <input type="email" id="contactEmail"/>
-        <button class="btn-save" onclick="saveContact()">💾 שמור לשרת</button>
+        <label style="margin-top:12px;">מייל לפרסום</label>
+        <input type="email" id="advertiseEmail"/>
+        <button class="btn-save" onclick="saveContact()" style="margin-top:12px;">💾 שמור לשרת</button>
         <div class="ok" id="contactOk">✓ נשמר!</div>
       </div>
     </div>
@@ -715,6 +717,7 @@ function applySettings(){
   if(!logoSlides.length&&settings.logo) logoSlides=[{url:settings.logo,duration:5}];
   renderLogoSlides();
   document.getElementById('contactEmail').value=settings.contactEmail||'';
+  document.getElementById('advertiseEmail').value=settings.advertiseEmail||'';
   try{ hiddenDays=JSON.parse(settings.hiddenDays||'[]'); }catch(e){ hiddenDays=[]; }
   hiddenDays.forEach(i=>{ const cb=document.getElementById('hideDay'+i); if(cb) cb.checked=true; });
   adminHiddenDates=new Set();
@@ -1422,7 +1425,10 @@ async function saveHiddenDays(){
 }
 
 async function saveContact(){
-  await postData('settings',{contactEmail:document.getElementById('contactEmail').value});
+  await postData('settings',{
+    contactEmail:document.getElementById('contactEmail').value,
+    advertiseEmail:document.getElementById('advertiseEmail').value
+  });
   showOk('contactOk');
 }
 

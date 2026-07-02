@@ -1454,7 +1454,11 @@ document.addEventListener('visibilitychange',()=>{
 // ===== ADVERTISE BUTTON =====
 document.getElementById('advertiseBtnHeader').addEventListener('click',e=>{
   e.preventDefault();
-  const email=settings.contactEmail||'info@example.com';
+  if(!settings||!settings.advertiseEmail){
+    alert('עדיין בטעינה... אנא חכה ולחץ שוב');
+    return;
+  }
+  const email=settings.advertiseEmail;
   const subject='בקשה למידע על פרסום באתר אולם-בקליק';
   const body='שלום,\n\nרוצה לקבל פרטים על פרסום באתר אולם-בקליק.\n\nפרטי הפרסום:\n[אנא מלא כאן את פרטיך]\n\nתודה,';
   window.location.href=`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
