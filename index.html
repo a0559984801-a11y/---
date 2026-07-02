@@ -1378,7 +1378,7 @@ async function fetchData(){
     const [availRows,r2,r3]=await Promise.all([
       fetchAllAvailability(),
       sb.from('settings').select('*').abortSignal(_ac.signal),
-      sb.from('halls').select('*').abortSignal(_ac.signal)
+      sb.from('halls').select('*').order('order_num',{ascending:true}).abortSignal(_ac.signal)
     ]);
     if(r2.error) throw r2.error;
     if(r3.error) throw r3.error;
