@@ -1,9 +1,10 @@
-<!DOCTYPE html>
+ab.classList.add('hidden-day'); });.day-toggles{display:.day-toggles{display:flex;flex-wrap:wrap;gap:3px;}
+.day-toggle-btn.adminab.classList.add('admin-hidden-day'); });-hidden-day{display:none!important;}grid;grid-template-columns:repeat(7,1fr);gap:3px;}<!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https: data: blob:; media-src 'self' https:; connect-src 'self' https://mzrnwtwyuligsaxeoxhh.supabase.co https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com; frame-src 'none'; object-src 'none'; base-uri 'self';">
-<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">hh
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -95,7 +96,8 @@ body.has-bottom-ad .sidebar{bottom:8vh;}
 .sidebar.open{right:0;}
 .sidebar-title{font-size:0.82rem;font-weight:700;color:#1a1a2e;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #1a1a2e;}
 .filter-group{margin-bottom:11px;position:relative;}
-.day-toggles{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.day-toggles{display:flex;flex-wrap:wrap;gap:3px;}
+.day-toggle-btn.admin-hidden-day{display:none!important;}
 .day-toggle-btn{padding:4px 0;border:1px solid #ddd;border-radius:5px;background:#fafafa;cursor:pointer;font-family:'Rubik',sans-serif;font-size:0.7rem;font-weight:600;color:#333;text-align:center;transition:background 0.15s,color 0.15s,opacity 0.15s;}
 .day-toggle-btn.hidden-day{background:#f0ede8;color:#bbb;text-decoration:line-through;}
 .filter-label{font-size:0.72rem;color:#666;font-weight:600;margin-bottom:4px;display:block;}
@@ -562,7 +564,7 @@ let _tableHalls=[];
 
 function initDayToggles(){
   try{ localHiddenDays=JSON.parse((window._settings&&window._settings.hiddenDays)||'[]'); }catch(e){ localHiddenDays=[]; }
-  localHiddenDays.forEach(i=>{ const b=document.getElementById('dayBtn'+i); if(b) b.classList.add('hidden-day'); });
+  localHiddenDays.forEach(i=>{ const b=document.getElementById('dayBtn'+i); if(b) b.classList.add('admin-hidden-day'); });
   localHiddenDates.clear();
   try{ JSON.parse((window._settings&&window._settings.hiddenDates)||'[]').forEach(k=>localHiddenDates.add(k)); }catch(e){}
 }
