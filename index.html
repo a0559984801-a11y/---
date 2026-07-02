@@ -319,7 +319,7 @@ th.hall-name-th:hover{background:#2a2a4e;}
   <div class="header-left">
     <a href="halls.html" class="btn-halls">🏛 מידע על אולמות</a>
     <a href="#" id="contactBtnHeader" class="btn-contact" style="display:inline-flex">📬 צור קשר</a>
-    <a href="#" id="advertiseBtnHeader" class="btn-contact" style="display:inline-flex;background:#f39c12;">📢 לפרסום</a>
+    <a href="#" id="advertiseBtnHeader" class="btn-contact" style="display:inline-flex;background:#f39c12;animation:none;">📢 לפרסום</a>
   </div>
 </header>
 
@@ -1458,9 +1458,8 @@ document.getElementById('advertiseBtnHeader').addEventListener('click',e=>{
   const email=s.advertiseEmail||s.contactEmail||'';
   if(!email){alert('מייל פרסום לא מוגדר בניהול');return;}
   const subject='בקשה למידע על פרסום באתר אולם-בקליק';
-const body = `שלום
-רוצה לקבל פרטים על פרסום באתר אולם-בקליק`;
-    window.location.href=`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  const body='שלום\nרוצה לקבל פרטים על פרסום באתר אולם-בקליק';
+  window.location.href=`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 });
 </script>
 </body>
