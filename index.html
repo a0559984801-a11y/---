@@ -1388,7 +1388,11 @@ async function fetchData(){
     const hallsData=r3.data||[];
     const fresh=JSON.stringify({avail:availData,settings:settingsData,halls:hallsData});
     // Data unchanged since cache render → skip the expensive second render
-    if(renderedFromCache&&cachedRaw===fresh) return;
+    if(renderedFromCache&&cachedRaw===fresh){
+      // עדיין עדכן את ה-UI כדי להראות נתונים חדשים מ-Supabase
+      applyData(availData,settingsData,hallsData);
+      return;
+    }
     const ok=applyData(availData,settingsData,hallsData);
     if(ok){
       document.getElementById('errorMsg').style.display='none';
