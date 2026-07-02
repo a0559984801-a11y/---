@@ -319,6 +319,7 @@ th.hall-name-th:hover{background:#2a2a4e;}
   <div class="header-left">
     <a href="halls.html" class="btn-halls">🏛 מידע על אולמות</a>
     <a href="#" id="contactBtnHeader" class="btn-contact" style="display:none">📬 צור קשר</a>
+    <a href="#" id="advertiseBtnHeader" class="btn-contact" style="display:none;background:#f39c12;">📢 לפרסום</a>
   </div>
 </header>
 
@@ -1449,6 +1450,15 @@ document.addEventListener('visibilitychange',()=>{
   }
 });
 // logVisit ו-logDuration הושבתו כדי לחסוך במכסת הרצות (360 דק'/יום).
+
+// ===== ADVERTISE BUTTON =====
+document.getElementById('advertiseBtnHeader').addEventListener('click',e=>{
+  e.preventDefault();
+  const email=settings.contactEmail||'info@example.com';
+  const subject='בקשה למידע על פרסום באתר אולם-בקליק';
+  const body='שלום,\n\nרוצה לקבל פרטים על פרסום באתר אולם-בקליק.\n\nפרטי הפרסום:\n[אנא מלא כאן את פרטיך]\n\nתודה,';
+  window.location.href=`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+});
 </script>
 </body>
 </html>
