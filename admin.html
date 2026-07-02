@@ -363,20 +363,20 @@ textarea{resize:vertical;min-height:70px;}
     <div class="panel" id="panel-availability">
       <h2>📆 עדכון זמינות ידני</h2>
       <div class="card" style="padding:12px;">
-        <!-- שורת בחירת אולם + טוגל שפה -->
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
-          <select id="availHallSelect" style="flex:1;min-width:140px;font-size:0.88rem;padding:6px 10px;border:1px solid #ddd;border-radius:6px;"></select>
-          <button id="availLangToggle" onclick="toggleCalLang()" style="padding:5px 12px;border:1px solid #ddd;border-radius:6px;background:#f5f5f5;cursor:pointer;font-size:0.82rem;">עברי</button>
+        <!-- בחירת אולם -->
+        <div style="margin-bottom:14px;">
+          <label style="font-size:0.85rem;font-weight:600;color:#333;">בחר אולם:</label>
+          <select id="availHallFilter" onchange="updateBigTable()" style="width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:0.9rem;margin-top:4px;">
+            <option value="">-- כל האולמות --</option>
+          </select>
         </div>
-        <!-- ניווט חודש -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-          <button onclick="calNav(-1)" style="padding:4px 12px;border:1px solid #ddd;border-radius:6px;background:#f5f5f5;cursor:pointer;font-size:1rem;">‹</button>
-          <span id="calMonthTitle" style="font-weight:700;font-size:0.95rem;color:#1a1a2e;"></span>
-          <button onclick="calNav(1)" style="padding:4px 12px;border:1px solid #ddd;border-radius:6px;background:#f5f5f5;cursor:pointer;font-size:1rem;">›</button>
+        <!-- טבלה -->
+        <div style="overflow-x:auto;margin-bottom:14px;">
+          <div id="availBigTable" style="min-height:300px;"></div>
         </div>
-        <!-- לוח שנה -->
-        <div id="availCalendar" style="min-height:200px;"></div>
-        <div id="availCalMsg" style="font-size:0.82rem;color:#999;text-align:center;padding:8px 0;display:none;"></div>
+        <!-- כפתור שמור -->
+        <button onclick="saveAllChanges()" style="width:100%;padding:10px;background:#1a7a45;color:white;border:none;border-radius:6px;cursor:pointer;font-weight:600;font-size:0.9rem;">💾 שמור שינויים</button>
+        <div id="saveMsg" style="color:#1a7a45;font-size:0.8rem;margin-top:6px;display:none;text-align:center;">✓ נשמר בהצלחה!</div>
       </div>
       <!-- מודאל בחירת סטטוס -->
       <div id="availModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;align-items:center;justify-content:center;">
@@ -1488,6 +1488,94 @@ async function checkExistingSession(){
 checkExistingSession().then(loggedIn=>{
   if(!loggedIn) document.getElementById('gateEmail').focus();
 });
+
+// ===== BIG AVAILABILITY TABLE =====
+let changedCells={};
+
+async function initAvailabilityTab(){
+  const {data:halls,error:hallErr}=await sb.from('halls').select('id,name').order('name');
+  if(hallErr||!halls){console.error(hallErr);return;}
+  
+  // למלא את select
+  let opt='<option value="">-- כל האולמות --</option>';
+  halls.forEach(h=>opt+=`<option value="${h.name}">${h.name}</option>`);
+  document.getElementById('availHallFilter').innerHTML=opt;
+  
+  updateBigTable();
+}
+
+async function updateBigTable(){
+  const {data:halls,error:hallErr}=await sb.from('halls').select('id,name').order('name');
+  if(hallErr||!halls)return;
+  
+  const {data:avail,error:availErr}=await sb.from('זמינות').select('*').order('תאריך');
+  if(availErr||!avail)return;
+  
+  const filter=document.getElementById('availHallFilter').value;
+  const filteredHalls=filter?halls.filter(h=>h.name===filter):halls;
+  
+  const today=new Date();today.setHours(0,0,0,0);
+  const dates=[];
+  for(let i=0;i<60;i++){
+    const d=new Date(today);d.setDate(d.getDate()+i);
+    const iso=d.toLocaleDateString('sv-SE');
+    const he=d.toLocaleDateString('he-IL');
+    const en=d.toLocaleDateString('en-GB');
+    dates.push({iso,he,en});
+  }
+  
+  changedCells={};
+  
+  let html='<table style="width:100%;border-collapse:collapse;font-size:0.75rem;"><tr><td style="padding:6px;font-weight:700;border:1px solid #ddd;background:#f5f5f5;">תאריך</td>';
+  filteredHalls.forEach(h=>{
+    html+=`<td style="padding:6px;font-weight:700;border:1px solid #ddd;background:#f5f5f5;text-align:center;min-width:70px;">${h.name}</td>`;
+  });
+  html+='</tr>';
+  
+  dates.forEach(d=>{
+    html+=`<tr><td style="padding:6px;border:1px solid #ddd;background:#fafafa;font-weight:600;font-size:0.7rem;"><div>${d.he}</div><div style="color:#999;font-size:0.65rem;">${d.en}</div></td>`;
+    filteredHalls.forEach(h=>{
+      const rec=avail.find(r=>r['תאריך']===d.iso&&r[h.name]);
+      const status=rec?rec[h.name]:'פנוי';
+      const bg=status==='תפוס'?'#fde8e8':'#d4f5e4';
+      const col=status==='תפוס'?'#a32020':'#1a7a45';
+      const key=`${h.name}|${d.iso}`;
+      html+=`<td style="padding:6px;border:1px solid #ddd;background:${bg};color:${col};text-align:center;cursor:pointer;font-weight:600;transition:filter 0.2s;" onclick="toggleCell('${key}',this)" onmouseover="this.style.filter='brightness(0.9)'" onmouseout="this.style.filter='brightness(1)'">${status}</td>`;
+    });
+    html+='</tr>';
+  });
+  html+='</table>';
+  document.getElementById('availBigTable').innerHTML=html;
+}
+
+function toggleCell(key,el){
+  const current=el.textContent.trim();
+  const newStatus=current==='תפוס'?'פנוי':'תפוס';
+  changedCells[key]=newStatus;
+  el.textContent=newStatus;
+  el.style.background=newStatus==='תפוס'?'#fde8e8':'#d4f5e4';
+  el.style.color=newStatus==='תפוס'?'#a32020':'#1a7a45';
+  el.style.fontWeight='700';
+}
+
+async function saveAllChanges(){
+  const keys=Object.keys(changedCells);
+  if(!keys.length){alert('אין שינויים לשמור');return;}
+  
+  const saveMsg=document.getElementById('saveMsg');
+  saveMsg.style.display='none';
+  
+  for(const key of keys){
+    const [hallName,date]=key.split('|');
+    const status=changedCells[key];
+    const {error}=await sb.from('זמינות').upsert({תאריך:date,[hallName]:status});
+    if(error)console.error('Error saving:',error);
+  }
+  
+  changedCells={};
+  saveMsg.style.display='block';
+  setTimeout(()=>saveMsg.style.display='none',2000);
+}
 
 </script>
 </body>
