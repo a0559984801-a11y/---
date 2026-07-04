@@ -305,16 +305,20 @@
 
         <p>שנערך ונחתם ביום: <span contenteditable="true" style="border-bottom: 1px dotted #7f8c8d; min-width: 100px; display: inline-block;">__________</span> בתאריך: <span contenteditable="true" style="border-bottom: 1px dotted #7f8c8d; min-width: 30px; display: inline-block; text-align: center;">__</span>/<span contenteditable="true" style="border-bottom: 1px dotted #7f8c8d; min-width: 30px; display: inline-block; text-align: center;">__</span>/<span contenteditable="true" style="border-bottom: 1px dotted #7f8c8d; min-width: 50px; display: inline-block; text-align: center;">____</span></p>
 
-        <!-- פרטי הצדדים -->
-        <h3>🏢 פרטי הצדדים</h3>
+        <!-- פרטי בעל הפלטפורמה -->
+        <h3>🖥️ פרטי בעל הפלטפורמה</h3>
         <div class="form-grid">
-            <div class="form-group"><label>הפלטפורמה המפעילה:</label><div class="line-fill">אולם בקליק</div></div>
-            <div class="form-group"><label>שם הבעלים / החברה המפעילה:</label><div id="val_owner" class="line-fill" contenteditable="true"></div></div>
+            <div class="form-group"><label>שם הפלטפורמה:</label><div class="line-fill">אולם בקליק</div></div>
             <div class="form-group"><label>חברה מפעילה / ח.פ:</label><div id="val_companyId" class="line-fill" contenteditable="true"></div></div>
-            <div class="form-group"><label>מנהל האולם:</label><div id="val_manager" class="line-fill" contenteditable="true"></div></div>
+            <div class="form-group"><label>נציג הפלטפורמה:</label><div id="val_owner" class="line-fill" contenteditable="true"></div></div>
+        </div>
+
+        <!-- פרטי בעל האולם -->
+        <h3>🏢 פרטי בעל האולם</h3>
+        <div class="form-grid">
+            <div class="form-group"><label>שם הבעלים / החברה:</label><div id="val_manager" class="line-fill" contenteditable="true"></div></div>
             <div class="form-group"><label>נציג האולם:</label><div id="val_rep" class="line-fill" contenteditable="true"></div></div>
             <div class="form-group"><label>טלפון נייד לקשר:</label><div id="val_repPhone" class="line-fill" contenteditable="true" dir="ltr" style="text-align: right;" data-validate="phone" inputmode="numeric"></div></div>
-            <div class="form-group"><label>דואר אלקטרוני:</label><div id="val_repEmail" class="line-fill" contenteditable="true" dir="ltr" style="text-align: right;" data-validate="email"></div></div>
         </div>
 
         <!-- פרטי האולם ומאפיינים -->
@@ -418,7 +422,7 @@
         .btn-email { background-color: #e74c3c; color: white; }
     </style>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- html2pdf removed - sending form data directly --></script>
     <script>
 
     // ===== חתימה על קנבס =====
@@ -440,11 +444,11 @@
         }
         canvas.addEventListener('mousedown',  e => { drawing = true; const p = pos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); });
         canvas.addEventListener('mousemove',  e => { if (!drawing) return; const p = pos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
-        canvas.addEventListener('mouseup',    () => drawing = false);
+        canvas.addEventListener('mouseup',    () => { drawing = false; canvas.style.border = '1px dashed #bdc3c7'; });
         canvas.addEventListener('mouseleave', () => drawing = false);
         canvas.addEventListener('touchstart', e => { e.preventDefault(); drawing = true; const p = pos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); }, { passive: false });
         canvas.addEventListener('touchmove',  e => { e.preventDefault(); if (!drawing) return; const p = pos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); }, { passive: false });
-        canvas.addEventListener('touchend',   () => drawing = false);
+        canvas.addEventListener('touchend',   () => { drawing = false; canvas.style.border = '1px dashed #bdc3c7'; });
     }
 
     function clearCanvas(id) {
@@ -452,38 +456,120 @@
         c.getContext('2d').clearRect(0, 0, c.width, c.height);
     }
 
+    function canvasHasContent(id) {
+        const c = document.getElementById(id);
+        const data = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+        for (let i = 3; i < data.length; i += 4) {
+            if (data[i] > 0) return true;
+        }
+        return false;
+    }
+
     window.addEventListener('load', () => {
         initCanvas('sig_hall');
         initCanvas('sig_click');
     });
 
-    // ===== אימות שדות =====
+    // ===== אימות שדות טלפון - ספרות בלבד =====
     document.querySelectorAll('[data-validate="phone"]').forEach(el => {
         el.addEventListener('keydown', e => {
             if (['Backspace','Delete','ArrowLeft','ArrowRight','Tab','Home','End'].includes(e.key)) return;
             if (!/^\d$/.test(e.key)) e.preventDefault();
         });
-        el.addEventListener('input', () => {
-            el.innerText = el.innerText.replace(/[^\d]/g, '');
-            const range = document.createRange();
-            const sel = window.getSelection();
-            range.selectNodeContents(el);
-            range.collapse(false);
-            sel.removeAllRanges();
-            sel.addRange(range);
+        el.addEventListener('paste', e => {
+            e.preventDefault();
+            const text = (e.clipboardData || window.clipboardData).getData('text').replace(/[^\d]/g, '');
+            document.execCommand('insertText', false, text);
         });
     });
 
+    // ===== אימות מייל =====
     document.getElementById('val_repEmail').addEventListener('blur', function() {
         const v = this.innerText.trim();
         if (v && !v.includes('@')) {
             this.classList.add('invalid');
-            this.title = 'כתובת מייל חייבת להכיל @';
         } else {
             this.classList.remove('invalid');
-            this.title = '';
         }
     });
+
+    // ===== ולידציה לפני שליחה =====
+    function validateForm() {
+        let valid = true;
+        const required = ['val_owner','val_companyId','val_manager','val_rep','val_repPhone','val_repEmail'];
+
+        required.forEach(id => {
+            const el = document.getElementById(id);
+            const val = el.innerText.trim();
+            if (!val) {
+                el.style.borderBottom = '2px solid #e74c3c';
+                el.style.background = '#fff5f5';
+                valid = false;
+            } else {
+                el.style.borderBottom = '1px dotted #7f8c8d';
+                el.style.background = '';
+            }
+        });
+
+        // מייל חייב להכיל @
+        const emailEl = document.getElementById('val_repEmail');
+        if (emailEl.innerText.trim() && !emailEl.innerText.includes('@')) {
+            emailEl.style.borderBottom = '2px solid #e74c3c';
+            emailEl.style.background = '#fff5f5';
+            valid = false;
+        }
+
+        // לפחות כתובת יומן אחת
+        const calTable = document.querySelector('.calendar-table');
+        const rows = calTable.querySelectorAll('tbody tr');
+        const hasUrl = Array.from(rows).some(r => r.cells[1]?.innerText?.trim());
+        calTable.style.outline = hasUrl ? 'none' : '2px solid #e74c3c';
+        if (!hasUrl) valid = false;
+
+        // חתימה חובה
+        const sigHall = document.getElementById('sig_hall');
+        if (!canvasHasContent('sig_hall')) {
+            sigHall.style.border = '2px solid #e74c3c';
+            valid = false;
+        }
+
+        return valid;
+    }
+
+    // ===== איסוף נתוני טופס =====
+    function collectData() {
+        const g = id => document.getElementById(id)?.innerText?.trim() || '—';
+        const dateSpans = document.querySelectorAll('p span[contenteditable]');
+
+        let calLines = '';
+        document.querySelectorAll('.calendar-table tbody tr').forEach((row, i) => {
+            const name = row.cells[0]?.innerText?.trim();
+            const url  = row.cells[1]?.innerText?.trim();
+            const type = row.cells[2]?.innerText?.trim();
+            const note = row.cells[3]?.innerText?.trim();
+            if (name || url) calLines += `\n  מתחם ${i+1}: ${name || '—'} | URL: ${url || '—'} | סוג: ${type || '—'} | הערות: ${note || '—'}`;
+        });
+
+        return {
+            'תאריך': `${dateSpans[0]?.innerText?.trim() || ''} ${dateSpans[1]?.innerText?.trim() || ''}/${dateSpans[2]?.innerText?.trim() || ''}/${dateSpans[3]?.innerText?.trim() || ''}`,
+            'שם הבעלים / חברה': g('val_owner'),
+            'ח.פ': g('val_companyId'),
+            'מנהל האולם': g('val_manager'),
+            'נציג האולם': g('val_rep'),
+            'טלפון נציג': g('val_repPhone'),
+            'מייל נציג': g('val_repEmail'),
+            'עיר': g('val_city'),
+            'כתובת': g('val_street'),
+            'כשרות': g('val_kosher'),
+            'קיבולת': g('val_capacity'),
+            'נגישות': g('val_access'),
+            'טלפון אולם': g('val_hallPhone'),
+            'קישור לאולם': g('val_link'),
+            'יומנים': calLines || '—',
+            'חתימת בעל האולם': canvasHasContent('sig_hall') ? '✔ נחתם דיגיטלית' : 'לא נחתם',
+            'חתימת אולם בקליק': canvasHasContent('sig_click') ? '✔ נחתם דיגיטלית' : 'לא נחתם',
+        };
+    }
 
     // ===== שליחה =====
     document.getElementById('sendBtn').onclick = async function() {
@@ -494,32 +580,48 @@
             return;
         }
 
+        if (!validateForm()) {
+            alert('יש למלא את כל השדות המסומנים באדום ולצייר חתימה לפני השליחה');
+            document.querySelector('.invalid, [style*="border-bottom: 2px solid"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+
         const btn = this;
         btn.disabled = true;
-        btn.textContent = '⏳ מייצר PDF...';
+        btn.textContent = '⏳ שולח...';
 
         try {
-            await html2pdf().set({
-                margin: 10,
-                filename: 'הסכם-סנכרון-אולם-בקליק.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true },
-                jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
-            }).from(document.querySelector('.print-container')).save();
+            const data = collectData();
 
-            btn.textContent = '📧 פותח מייל...';
+            const formData = new FormData();
+            formData.append('_subject', `הסכם סנכרון יומנים - ${data['שם הבעלים / חברה']} | ${senderEmail}`);
+            formData.append('_replyto', senderEmail);
+            formData.append('_cc', senderEmail);
+            formData.append('_captcha', 'false');
+            formData.append('_template', 'table');
 
-            const subject = encodeURIComponent('הסכם סנכרון יומנים דיגיטלי - אולם בקליק | ' + senderEmail);
-            const body = encodeURIComponent('שלום,\n\nמצורף בזאת קובץ PDF של הסכם סנכרון יומנים דיגיטלי.\n\nבברכה');
-            window.location.href = `mailto:a0559984801@gmail.com?subject=${subject}&body=${body}`;
+            Object.entries(data).forEach(([key, val]) => formData.append(key, val));
 
-            showSuccessMessage();
-            setTimeout(() => window.close(), 4000);
+            const res = await fetch('https://formsubmit.co/ajax/a0559984801@gmail.com', {
+                method: 'POST',
+                headers: { 'Accept': 'application/json' },
+                body: formData
+            });
+
+            const result = await res.json();
+            if (result.success === 'true' || result.success === true) {
+                btn.textContent = '✅ נשלח!';
+                showSuccessMessage();
+                setTimeout(() => window.close(), 4000);
+            } else {
+                throw new Error(result.message || 'שגיאה');
+            }
 
         } catch (err) {
             console.error(err);
             btn.disabled = false;
             btn.textContent = '❌ שגיאה, נסה שוב';
+            alert('שגיאה בשליחה. אם זו הפעם הראשונה, בדוק את תיבת המייל a0559984801@gmail.com לאישור FormSubmit.');
         }
     };
 
@@ -531,7 +633,7 @@
             font-size:17px; z-index:3000; box-shadow:0 4px 20px rgba(0,0,0,0.25);
             font-weight:bold; text-align:center; line-height:1.8;
         `;
-        msg.innerHTML = '✅ קובץ ה-PDF הורד!<br>אנא צרף אותו למייל שנפתח ושלח.<br><small style="font-weight:normal">הדף ייסגר בעוד 4 שניות</small>';
+        msg.innerHTML = '✅ ההסכם נשלח בהצלחה!<br><small style="font-weight:normal;font-size:14px">עותק נשלח לכתובת המייל שלך<br>הדף ייסגר בעוד 4 שניות</small>';
         document.body.appendChild(msg);
     }
 
