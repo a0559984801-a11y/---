@@ -420,10 +420,7 @@
     </style>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/index.min.js"></script>
-    <script type="text/javascript">
-        emailjs.init('d8MTtGcFZHPmX9q4FMe5u');
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/index.min.js"></script>
     <script>
 
     // ===== חתימה על קנבס =====
@@ -469,6 +466,7 @@
     window.addEventListener('load', () => {
         initCanvas('sig_hall');
         initCanvas('sig_click');
+        emailjs.init('d8MTtGcFZHPmX9q4FMe5u');
     });
 
     // ===== אימות שדות טלפון - ספרות בלבד =====
