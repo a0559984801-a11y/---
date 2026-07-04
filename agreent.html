@@ -412,18 +412,18 @@
 
     <!-- סרגל שליחה -->
     <div class="action-bar">
-        <div class="sender-email-wrap">
-            <span class="sender-label">המייל שלך:</span>
-            <input type="email" id="senderEmail" class="sender-email-input" placeholder="your@email.com" required>
-            <button id="sendBtn" class="btn btn-email">📧 שלח כ-PDF</button>
-        </div>
+        <button id="sendBtn" class="btn btn-email">📧 שלח כ-PDF</button>
     </div>
 
     <style>
         .btn-email { background-color: #e74c3c; color: white; }
     </style>
 
-    <!-- html2pdf removed - sending form data directly --></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/index.min.js"></script>
+    <script type="text/javascript">
+        emailjs.init('d8MTtGcFZHPmX9q4FMe5u');
+    </script>
     <script>
 
     // ===== חתימה על קנבס =====
@@ -572,15 +572,29 @@
         };
     }
 
+    // ===== יצירת PDF =====
+    async function generatePdfBlob() {
+        const element = document.querySelector('.print-container');
+        const opt = {
+            margin: 10,
+            filename: 'agreement.pdf',
+            image: { type: 'jpeg', quality: 0.95 },
+            html2canvas: { scale: 2, useCORS: true, logging: false },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        return await html2pdf().set(opt).from(element).outputPdf('blob');
+    }
+
+    function blobToBase64(blob) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.readAsDataURL(blob);
+        });
+    }
+
     // ===== שליחה =====
     document.getElementById('sendBtn').onclick = async function() {
-        const senderEmail = document.getElementById('senderEmail').value.trim();
-        if (!senderEmail || !senderEmail.includes('@')) {
-            alert('אנא הכנס כתובת מייל תקינה שלך לפני השליחה');
-            document.getElementById('senderEmail').focus();
-            return;
-        }
-
         if (!validateForm()) {
             alert('יש למלא את כל השדות המסומנים באדום ולצייר חתימה לפני השליחה');
             document.querySelector('.invalid, [style*="border-bottom: 2px solid"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -589,40 +603,39 @@
 
         const btn = this;
         btn.disabled = true;
-        btn.textContent = '⏳ שולח...';
+        btn.textContent = '⏳ מייצר PDF...';
 
         try {
             const data = collectData();
+            const pdfBlob = await generatePdfBlob();
+            const pdfBase64 = await blobToBase64(pdfBlob);
 
-            const formData = new FormData();
-            formData.append('_subject', `הסכם סנכרון יומנים - ${data['שם הבעלים / חברה']} | ${senderEmail}`);
-            formData.append('_replyto', senderEmail);
-            formData.append('_cc', senderEmail);
-            formData.append('_captcha', 'false');
-            formData.append('_template', 'table');
+            btn.textContent = '⏳ שולח...';
 
-            Object.entries(data).forEach(([key, val]) => formData.append(key, val));
+            const emailData = {
+                to_email: 'a0559984801@gmail.com',
+                company_name: data['שם הבעלים / חברה'],
+                city: data['עיר'],
+                manager: data['מנהל האולם'],
+                phone: data['טלפון נציג'],
+                all_data: JSON.stringify(data),
+                pdf_attachment: pdfBase64
+            };
 
-            const res = await fetch('https://formsubmit.co/ajax/a0559984801@gmail.com', {
-                method: 'POST',
-                headers: { 'Accept': 'application/json' },
-                body: formData
-            });
+            const response = await emailjs.send('service_o2s2a9o', 'template_zpca5ks', emailData);
 
-            const result = await res.json();
-            if (result.success === 'true' || result.success === true) {
+            if (response.status === 200) {
                 btn.textContent = '✅ נשלח!';
                 showSuccessMessage();
-                setTimeout(() => window.close(), 4000);
             } else {
-                throw new Error(result.message || 'שגיאה');
+                throw new Error('שגיאה בשליחה');
             }
 
         } catch (err) {
             console.error(err);
             btn.disabled = false;
-            btn.textContent = '❌ שגיאה, נסה שוב';
-            alert('שגיאה בשליחה. אם זו הפעם הראשונה, בדוק את תיבת המייל a0559984801@gmail.com לאישור FormSubmit.');
+            btn.textContent = '📧 שלח כ-PDF';
+            alert('שגיאה בשליחה: ' + err.message);
         }
     };
 
@@ -634,7 +647,7 @@
             font-size:17px; z-index:3000; box-shadow:0 4px 20px rgba(0,0,0,0.25);
             font-weight:bold; text-align:center; line-height:1.8;
         `;
-        msg.innerHTML = '✅ ההסכם נשלח בהצלחה!<br><small style="font-weight:normal;font-size:14px">עותק נשלח לכתובת המייל שלך<br>הדף ייסגר בעוד 4 שניות</small>';
+        msg.innerHTML = '✅ ההסכם נשלח בהצלחה!<br><small style="font-weight:normal;font-size:14px">ה-PDF נשלח למייל a0559984801@gmail.com</small>';
         document.body.appendChild(msg);
     }
 
