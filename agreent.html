@@ -616,55 +616,64 @@
         try {
             const data = collectData();
             const pdfBlob = await generatePdfBlob();
+            const pdfBase64 = await blobToBase64(pdfBlob);
             const companyName = data['שם הבעלים / חברה'] || 'אולם';
-
-            btn.textContent = '⏳ מייצר PDF...';
-
-            // יצירת FormData עם PDF
-            const formData = new FormData();
-            formData.append('access_key', '65683a27-6384-4142-90c8-27888c5d4681');
-            formData.append('subject', `הסכם סנכרון יומנים - ${companyName}`);
-            formData.append('from_name', 'אולם בקליק');
-
-            // הוספת כל הנתונים כ-message
-            let messageContent = '';
-            Object.entries(data).forEach(([key, val]) => {
-                messageContent += `${key}: ${val}\n`;
-            });
-            formData.append('message', messageContent);
-
-            // הוספת ה-PDF כקובץ
-            const pdfFile = new File([pdfBlob], `הסכם_סנכרון_${companyName}.pdf`, { type: 'application/pdf' });
-            formData.append('attachment', pdfFile);
 
             btn.textContent = '⏳ שולח...';
 
-            // שליחה לבעל האולם
-            const formData1 = new FormData();
-            formData.forEach((value, key) => formData1.append(key, value));
-            formData1.set('email', 'a0559984801@gmail.com');
+            // הכנת ה-HTML content עם כל הנתונים
+            let htmlContent = '<h2>הסכם סנכרון יומנים</h2><table border="1" cellpadding="10"><tr><th>שדה</th><th>ערך</th></tr>';
+            Object.entries(data).forEach(([key, val]) => {
+                htmlContent += `<tr><td>${key}</td><td>${val}</td></tr>`;
+            });
+            htmlContent += '</table><p><strong>ראה את ה-PDF המצורף בהודעה זו</strong></p>';
 
-            const res1 = await fetch('https://api.web3forms.com/submit', {
+            // שליחה לבעל האולם
+            const res1 = await fetch('https://api.resend.com/emails', {
                 method: 'POST',
-                body: formData1
+                headers: {
+                    'Authorization': 'Bearer re_KKr6q9Af_9vB7Dei3u1xXgG8dXdwYCSKS',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    from: 'onboarding@resend.dev',
+                    to: 'a0559984801@gmail.com',
+                    subject: `הסכם סנכרון יומנים - ${companyName}`,
+                    html: htmlContent,
+                    attachments: [{
+                        filename: `הסכם_סנכרון_${companyName}.pdf`,
+                        content: pdfBase64
+                    }]
+                })
             });
 
+            const result1 = await res1.json();
             if (!res1.ok) {
-                throw new Error('שגיאה בשליחה לבעל האולם');
+                throw new Error(result1.message || 'שגיאה בשליחה לבעל האולם');
             }
 
             // שליחה לשולח
-            const formData2 = new FormData();
-            formData.forEach((value, key) => formData2.append(key, value));
-            formData2.set('email', senderEmail);
-
-            const res2 = await fetch('https://api.web3forms.com/submit', {
+            const res2 = await fetch('https://api.resend.com/emails', {
                 method: 'POST',
-                body: formData2
+                headers: {
+                    'Authorization': 'Bearer re_KKr6q9Af_9vB7Dei3u1xXgG8dXdwYCSKS',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    from: 'onboarding@resend.dev',
+                    to: senderEmail,
+                    subject: `הסכם סנכרון יומנים - ${companyName}`,
+                    html: htmlContent,
+                    attachments: [{
+                        filename: `הסכם_סנכרון_${companyName}.pdf`,
+                        content: pdfBase64
+                    }]
+                })
             });
 
+            const result2 = await res2.json();
             if (!res2.ok) {
-                throw new Error('שגיאה בשליחה לכתובתך');
+                throw new Error(result2.message || 'שגיאה בשליחה לכתובתך');
             }
 
             btn.textContent = '✅ נשלח!';
