@@ -169,12 +169,68 @@
             text-align: center;
         }
 
+        .sig-canvas {
+            border: 1px dashed #bdc3c7;
+            border-radius: 6px;
+            cursor: crosshair;
+            display: block;
+            margin: 10px auto 5px auto;
+            background: #fafafa;
+            width: 100%;
+            height: 90px;
+        }
+
+        .sig-clear-btn {
+            font-size: 11px;
+            color: #e74c3c;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 2px 6px;
+            text-decoration: underline;
+        }
+
         .signature-line {
             border-top: 1px solid #2c3e50;
-            margin-top: 50px;
+            margin-top: 8px;
             padding-top: 8px;
             font-size: 14px;
             font-weight: bold;
+        }
+
+        /* שדות אימות */
+        .line-fill.invalid {
+            border-bottom: 1px dotted #e74c3c;
+            background: #fff5f5;
+        }
+
+        /* מייל שולח בסרגל */
+        .sender-email-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sender-email-input {
+            font-family: 'Assistant', sans-serif;
+            font-size: 14px;
+            padding: 10px 14px;
+            border: 1px solid #bdc3c7;
+            border-radius: 6px;
+            direction: ltr;
+            width: 220px;
+            outline: none;
+        }
+
+        .sender-email-input:focus {
+            border-color: #2980b9;
+        }
+
+        .sender-label {
+            font-weight: bold;
+            font-size: 14px;
+            white-space: nowrap;
+            color: #2c3e50;
         }
 
         /* סרגל כפתורים תחתון צף (לא מופיע בהדפסה) */
@@ -257,8 +313,8 @@
             <div class="form-group"><label>חברה מפעילה / ח.פ:</label><div id="val_companyId" class="line-fill" contenteditable="true"></div></div>
             <div class="form-group"><label>מנהל האולם:</label><div id="val_manager" class="line-fill" contenteditable="true"></div></div>
             <div class="form-group"><label>נציג האולם:</label><div id="val_rep" class="line-fill" contenteditable="true"></div></div>
-            <div class="form-group"><label>טלפון נייד לקשר:</label><div id="val_repPhone" class="line-fill" contenteditable="true" dir="ltr" style="text-align: right;"></div></div>
-            <div class="form-group"><label>דואר אלקטרוני:</label><div id="val_repEmail" class="line-fill" contenteditable="true" dir="ltr" style="text-align: right;"></div></div>
+            <div class="form-group"><label>טלפון נייד לקשר:</label><div id="val_repPhone" class="line-fill" contenteditable="true" dir="ltr" style="text-align: right;" data-validate="phone" inputmode="numeric"></div></div>
+            <div class="form-group"><label>דואר אלקטרוני:</label><div id="val_repEmail" class="line-fill" contenteditable="true" dir="ltr" style="text-align: right;" data-validate="email"></div></div>
         </div>
 
         <!-- פרטי האולם ומאפיינים -->
@@ -267,9 +323,9 @@
             <div class="form-group"><label>עיר:</label><div id="val_city" class="line-fill" contenteditable="true"></div></div>
             <div class="form-group"><label>רחוב ומספר:</label><div id="val_street" class="line-fill" contenteditable="true"></div></div>
             <div class="form-group"><label>כשרות:</label><div id="val_kosher" class="line-fill" contenteditable="true"></div></div>
-            <div class="form-group"><label>מספר מקומות (קיבולת):</label><div id="val_capacity" class="line-fill" contenteditable="true"></div></div>
+            <div class="form-group"><label>מספר מקומות (קיבולת):</label><div id="val_capacity" class="line-fill" contenteditable="true" data-validate="phone" inputmode="numeric"></div></div>
             <div class="form-group"><label>נגישות:</label><div id="val_access" class="line-fill" contenteditable="true"></div></div>
-            <div class="form-group"><label>טלפון ליצירת קשר:</label><div id="val_hallPhone" class="line-fill" contenteditable="true" dir="ltr" style="text-align: right;"></div></div>
+            <div class="form-group"><label>טלפון ליצירת קשר:</label><div id="val_hallPhone" class="line-fill" contenteditable="true" dir="ltr" style="text-align: right;" data-validate="phone" inputmode="numeric"></div></div>
             <div class="form-group" style="grid-column: span 2;"><label>קישור לאולם:</label><div id="val_link" class="line-fill" contenteditable="true" dir="ltr" style="text-align: right;"></div></div>
         </div>
 
@@ -335,25 +391,27 @@
         <div class="signatures-section">
             <div class="signature-box">
                 <p><strong>בעלות / מנהל האולם</strong></p>
-                <div class="signature-line">
-                    ___________________________<br>
-                    שם ותאריך
-                </div>
+                <canvas id="sig_hall" class="sig-canvas"></canvas>
+                <button class="sig-clear-btn" onclick="clearCanvas('sig_hall')">✕ נקה חתימה</button>
+                <div class="signature-line">שם ותאריך</div>
             </div>
             <div class="signature-box">
                 <p><strong>אולם בקליק</strong></p>
-                <div class="signature-line">
-                    ___________________________<br>
-                    שם וחתימה
-                </div>
+                <canvas id="sig_click" class="sig-canvas"></canvas>
+                <button class="sig-clear-btn" onclick="clearCanvas('sig_click')">✕ נקה חתימה</button>
+                <div class="signature-line">שם וחתימה</div>
             </div>
         </div>
 
     </div>
 
-    <!-- סרגל כפתורים -->
+    <!-- סרגל שליחה -->
     <div class="action-bar">
-        <button id="sendBtn" class="btn btn-email">📧 שלח למייל בתור PDF</button>
+        <div class="sender-email-wrap">
+            <span class="sender-label">המייל שלך:</span>
+            <input type="email" id="senderEmail" class="sender-email-input" placeholder="your@email.com" required>
+            <button id="sendBtn" class="btn btn-email">📧 שלח כ-PDF</button>
+        </div>
     </div>
 
     <style>
@@ -361,88 +419,122 @@
     </style>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
     <script>
-        document.getElementById('sendBtn').onclick = async function() {
-            const button = this;
-            button.disabled = true;
-            button.textContent = '⏳ בעיבוד...';
 
-            try {
-                const printContainer = document.querySelector('.print-container');
+    // ===== חתימה על קנבס =====
+    function initCanvas(id) {
+        const canvas = document.getElementById(id);
+        const ctx = canvas.getContext('2d');
+        canvas.width = canvas.offsetWidth || 300;
+        canvas.height = 90;
+        ctx.strokeStyle = '#1a1a2e';
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        let drawing = false;
 
-                // Generate PDF
-                const pdf = await html2pdf().set({
-                    margin: 10,
-                    filename: 'agreement.pdf',
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2 },
-                    jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
-                }).toPdf().get('pdf');
-
-                // Convert PDF to blob
-                pdf.save('agreement.pdf');
-
-                // Create FormData
-                const formData = new FormData();
-                formData.append('_subject', 'טופס סנכרון יומנים דיגיטלי - אולם בקליק');
-                formData.append('_captcha', 'false');
-                formData.append('message', 'טופס מצורף');
-
-                // Create blob from PDF
-                pdf.output('blob', (blob) => {
-                    formData.append('attachment', blob, 'agreement.pdf');
-
-                    // Send to FormSubmit
-                    fetch('https://formsubmit.co/a0559984801@gmail.com', {
-                        method: 'POST',
-                        body: formData
-                    })
-                    .then(response => {
-                        if (response.ok) {
-                            button.textContent = '✅ נשלח בהצלחה!';
-                            showSuccessMessage();
-                            setTimeout(() => {
-                                window.close();
-                            }, 3000);
-                        } else {
-                            throw new Error('שגיאה בשליחה');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        button.disabled = false;
-                        button.textContent = '❌ שגיאה בשליחה';
-                    });
-                });
-
-            } catch (error) {
-                console.error('Error:', error);
-                button.disabled = false;
-                button.textContent = '❌ שגיאה בעיבוד';
-            }
-        };
-
-        function showSuccessMessage() {
-            const message = document.createElement('div');
-            message.style.cssText = `
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: #27ae60;
-                color: white;
-                padding: 30px 50px;
-                border-radius: 8px;
-                font-size: 18px;
-                z-index: 2000;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                font-weight: bold;
-                text-align: center;
-            `;
-            message.textContent = '✅ הטופס נשלח למייל בהצלחה!\nהדף יסגור בעוד 3 שניות...';
-            document.body.appendChild(message);
+        function pos(e) {
+            const r = canvas.getBoundingClientRect();
+            const src = e.touches ? e.touches[0] : e;
+            return { x: src.clientX - r.left, y: src.clientY - r.top };
         }
+        canvas.addEventListener('mousedown',  e => { drawing = true; const p = pos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); });
+        canvas.addEventListener('mousemove',  e => { if (!drawing) return; const p = pos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
+        canvas.addEventListener('mouseup',    () => drawing = false);
+        canvas.addEventListener('mouseleave', () => drawing = false);
+        canvas.addEventListener('touchstart', e => { e.preventDefault(); drawing = true; const p = pos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); }, { passive: false });
+        canvas.addEventListener('touchmove',  e => { e.preventDefault(); if (!drawing) return; const p = pos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); }, { passive: false });
+        canvas.addEventListener('touchend',   () => drawing = false);
+    }
+
+    function clearCanvas(id) {
+        const c = document.getElementById(id);
+        c.getContext('2d').clearRect(0, 0, c.width, c.height);
+    }
+
+    window.addEventListener('load', () => {
+        initCanvas('sig_hall');
+        initCanvas('sig_click');
+    });
+
+    // ===== אימות שדות =====
+    document.querySelectorAll('[data-validate="phone"]').forEach(el => {
+        el.addEventListener('keydown', e => {
+            if (['Backspace','Delete','ArrowLeft','ArrowRight','Tab','Home','End'].includes(e.key)) return;
+            if (!/^\d$/.test(e.key)) e.preventDefault();
+        });
+        el.addEventListener('input', () => {
+            el.innerText = el.innerText.replace(/[^\d]/g, '');
+            const range = document.createRange();
+            const sel = window.getSelection();
+            range.selectNodeContents(el);
+            range.collapse(false);
+            sel.removeAllRanges();
+            sel.addRange(range);
+        });
+    });
+
+    document.getElementById('val_repEmail').addEventListener('blur', function() {
+        const v = this.innerText.trim();
+        if (v && !v.includes('@')) {
+            this.classList.add('invalid');
+            this.title = 'כתובת מייל חייבת להכיל @';
+        } else {
+            this.classList.remove('invalid');
+            this.title = '';
+        }
+    });
+
+    // ===== שליחה =====
+    document.getElementById('sendBtn').onclick = async function() {
+        const senderEmail = document.getElementById('senderEmail').value.trim();
+        if (!senderEmail || !senderEmail.includes('@')) {
+            alert('אנא הכנס כתובת מייל תקינה שלך לפני השליחה');
+            document.getElementById('senderEmail').focus();
+            return;
+        }
+
+        const btn = this;
+        btn.disabled = true;
+        btn.textContent = '⏳ מייצר PDF...';
+
+        try {
+            await html2pdf().set({
+                margin: 10,
+                filename: 'הסכם-סנכרון-אולם-בקליק.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+            }).from(document.querySelector('.print-container')).save();
+
+            btn.textContent = '📧 פותח מייל...';
+
+            const subject = encodeURIComponent('הסכם סנכרון יומנים דיגיטלי - אולם בקליק | ' + senderEmail);
+            const body = encodeURIComponent('שלום,\n\nמצורף בזאת קובץ PDF של הסכם סנכרון יומנים דיגיטלי.\n\nבברכה');
+            window.location.href = `mailto:a0559984801@gmail.com?subject=${subject}&body=${body}`;
+
+            showSuccessMessage();
+            setTimeout(() => window.close(), 4000);
+
+        } catch (err) {
+            console.error(err);
+            btn.disabled = false;
+            btn.textContent = '❌ שגיאה, נסה שוב';
+        }
+    };
+
+    function showSuccessMessage() {
+        const msg = document.createElement('div');
+        msg.style.cssText = `
+            position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+            background:#27ae60; color:white; padding:30px 40px; border-radius:10px;
+            font-size:17px; z-index:3000; box-shadow:0 4px 20px rgba(0,0,0,0.25);
+            font-weight:bold; text-align:center; line-height:1.8;
+        `;
+        msg.innerHTML = '✅ קובץ ה-PDF הורד!<br>אנא צרף אותו למייל שנפתח ושלח.<br><small style="font-weight:normal">הדף ייסגר בעוד 4 שניות</small>';
+        document.body.appendChild(msg);
+    }
+
     </script>
 
 </body>
