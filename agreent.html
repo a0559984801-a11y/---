@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>אישור וכתב הסכמה לסנכרון יומני אולמות</title>
+    <style>
+        @import url('https://googleapis.com');
+        
+        body {
+            font-family: 'Assistant', sans-serif;
+            color: #2c3e50;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #fff;
+        }
+
+        .print-container {
+            max-width: 820px;
+            margin: 20px auto 100px auto;
+            padding: 40px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.03);
+        }
+
+        /* כותרת רשמית */
+        .header-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #2980b9;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-graphic {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #1ad1b1, #2980b9);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-text h1 {
+            font-size: 24px;
+            margin: 0;
+            color: #2c3e50;
+            font-weight: 700;
+        }
+
+        .logo-text p {
+            font-size: 13px;
+            margin: 3px 0 0 0;
+            color: #7f8c8d;
+        }
+
+        .document-title {
+            text-align: left;
+        }
+
+        .document-title h2 {
+            font-size: 18px;
+            color: #2980b9;
+            margin: 0;
+            font-weight: 700;
+        }
+
+        h3 {
+            font-size: 16px;
+            color: #2c3e50;
+            background-color: #f4f6f7;
+            padding: 8px 12px;
+            border-right: 4px solid #2980b9;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        p, li {
+            font-size: 14px;
+            color: #34495e;
+        }
+
+        /* שדות למילוי */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px 30px;
+            margin-bottom: 10px;
+        }
+
+        .form-group {
+            display: flex;
+            align-items: flex-end;
+        }
+
+        label {
+            font-weight: bold;
+            font-size: 14px;
+            color: #2c3e50;
+            white-space: nowrap;
+            margin-left: 10px;
+        }
+
+        .line-fill {
+            flex-grow: 1;
+            border-bottom: 1px dotted #7f8c8d;
+            height: 20px;
+            margin-bottom: 2px;
+            outline: none;
+            padding: 0 5px;
+        }
+
+        /* עיצוב טבלת מתחמים */
+        .calendar-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+
+        .calendar-table th, .calendar-table td {
+            border: 1px solid #bdc3c7;
+            padding: 10px;
+            font-size: 13px;
+            text-align: right;
+        }
+
+        .calendar-table th {
+            background-color: #eaeded;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+
+        .table-line-fill {
+            height: 20px;
+            outline: none;
+        }
+
+        /* סעיפי התחייבות */
+        ol {
+            padding-right: 20px;
+        }
+
+        li {
+            margin-bottom: 12px;
+            text-align: justify;
+        }
+
+        /* חתימות */
+        .signatures-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 50px;
+            padding-top: 20px;
+        }
+
+        .signature-box {
+            width: 45%;
+            text-align: center;
+        }
+
+        .signature-line {
+            border-top: 1px solid #2c3e50;
+            margin-top: 50px;
+            padding-top: 8px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        /* סרגל כפתורים תחתון צף (לא מופיע בהדפסה) */
+        .action-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #fff;
+            padding: 15px;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.08);
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            z-index: 1000;
+        }
+
+        .btn {
+            font-family: 'Assistant', sans-serif;
+            font-size: 15px;
+            font-weight: bold;
+            padding: 12px 28px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .btn-print { background-color: #2980b9; color: white; }
+        .btn-copy { background-color: #27ae60; color: white; }
+
+        @media print {
+            body { background-color: #fff; }
+            .print-container {
+                border: none;
+                box-shadow: none;
+                margin: 0;
+                padding: 0;
+                max-width: 100%;
+            }
+            .action-bar {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="print-container">
+        
+        <!-- כותרת ראשית ולוגו הפלטפורמה -->
+        <div class="header-section">
+            <div class="logo-container">
+                <div class="logo-graphic">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://w3.org">
+                        <path d="M19 4H5C3.89543 4 3 4.89543 3 6V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V6C21 4.89543 20.1046 4 19 4Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M16 2V6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M8 2V6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M3 10H21" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 14L14 16L18 12" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="logo-text">
+                    <h1>אולם בקליק</h1>
+                    <p>מערכת ניהול זמינות אולמות אירועים</p>
+                </div>
+            </div>
+            <div class="document-title">
+                <h2>נספח אישור וסנכרון טכנולוגי</h2>
+            </div>
+        </div>
+
+        <p>שנערך ונחתם ביום: <span contenteditable="true" style="border-bottom: 1px dotted #7f8c8d; min-width: 100px; display: inline-block;">__________</span> בתאריך: <span contenteditable="true" style="border-bottom: 1px dotted #7f8c8d; min-width: 30px; display: inline-block; text-align: center;">__</span>/<span contenteditable="true" style="border-bottom: 1px dotted #7f8c8d; min-width: 30px; display: inline-block; text-align: center;">__</span>/<span contenteditable="true" style="border-bottom: 1px dotted #7f8c8d; min-width: 50px; display: inline-block; text-align: center;">____</span></p>
+
+        <!-- פרטי הצדדים -->
+        <h3>🏢 פרטי הצדדים</h3>
+        <div class="form-grid">
+            <div class="form-group"><label>הפלטפורמה המפעילה:</label><div class="line-fill">אולם בקליק</div></div>
+            <div class="form-group"><label>שם הבעלים / החברה המפעילה:</label><div id="val_owner" class="line-fill" contenteditable="true"></div></div>
+            <div class="form-group"><label>חברה מפעילה / ח.פ:</label><div id="val_companyId" class="line-fill" contenteditable="true"></div></div>
+            <div class="form-group"><label>מנהל האולם:</label><div id="val_manager" class="line-fill" contenteditable="true"></div></div>
+            <div class="form-group"><label>נציג האולם:</label><div id="val_rep" class="line-fill" contenteditable="true"></div></div>
+            <div class="form-group"><label>טלפון נייד לקשר:</label><div id="val_repPhone" class="line-fill" contenteditable="true" dir="ltr" style="text-align: right;"></div></div>
+            <div class="form-group"><label>דואר אלקטרוני:</label><div id="val_repEmail" class="line-fill" contenteditable="true" dir="ltr" style="text-align: right;"></div></div>
+        </div>
+
+        <!-- פרטי האולם ומאפיינים -->
+        <h3>📍 פרטי האולם והמאפיינים</h3>
+        <div class="form-grid">
+            <div class="form-group"><label>עיר:</label><div id="val_city" class="line-fill" contenteditable="true"></div></div>
+            <div class="form-group"><label>רחוב ומספר:</label><div id="val_street" class="line-fill" contenteditable="true"></div></div>
+            <div class="form-group"><label>כשרות:</label><div id="val_kosher" class="line-fill" contenteditable="true"></div></div>
+            <div class="form-group"><label>מספר מקומות (קיבולת):</label><div id="val_capacity" class="line-fill" contenteditable="true"></div></div>
+            <div class="form-group"><label>נגישות:</label><div id="val_access" class="line-fill" contenteditable="true"></div></div>
+            <div class="form-group"><label>טלפון ליצירת קשר:</label><div id="val_hallPhone" class="line-fill" contenteditable="true" dir="ltr" style="text-align: right;"></div></div>
+            <div class="form-group" style="grid-column: span 2;"><label>קישור לאולם:</label><div id="val_link" class="line-fill" contenteditable="true" dir="ltr" style="text-align: right;"></div></div>
+        </div>
+
+        <!-- טבלת ריכוז יומנים למספר מתחמים -->
+        <h3>🔗 ריכוז מתחמים וכתובות יומן דיגיטלי (Calendar Feeds)</h3>
+        <table class="calendar-table">
+            <thead>
+                <tr>
+                    <th>שם המתחם</th>
+                    <th>קישור יומן דיגיטלי (Calendar Feed URL)</th>
+                    <th>סוג הסנכרון</th>
+                    <th>הערות</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td contenteditable="true" class="table-line-fill"></td>
+                    <td contenteditable="true" class="table-line-fill"></td>
+                    <td contenteditable="true" class="table-line-fill"></td>
+                    <td contenteditable="true" class="table-line-fill"></td>
+                </tr>
+                <tr>
+                    <td contenteditable="true" class="table-line-fill"></td>
+                    <td contenteditable="true" class="table-line-fill"></td>
+                    <td contenteditable="true" class="table-line-fill"></td>
+                    <td contenteditable="true" class="table-line-fill"></td>
+                </tr>
+                <tr>
+                    <td contenteditable="true" class="table-line-fill"></td>
+                    <td contenteditable="true" class="table-line-fill"></td>
+                    <td contenteditable="true" class="table-line-fill"></td>
+                    <td contenteditable="true" class="table-line-fill"></td>
+                </tr>
+                <tr>
+                    <td contenteditable="true" class="table-line-fill"></td>
+                    <td contenteditable="true" class="table-line-fill"></td>
+                    <td contenteditable="true" class="table-line-fill"></td>
+                    <td contenteditable="true" class="table-line-fill"></td>
+                </tr>
+                <tr>
+                    <td contenteditable="true" class="table-line-fill"></td>
+                    <td contenteditable="true" class="table-line-fill"></td>
+                    <td contenteditable="true" class="table-line-fill"></td>
+                    <td contenteditable="true" class="table-line-fill"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- סעיפי התחייבות -->
+        <h3>📋 תנאים והתחייבויות</h3>
+        <ol>
+            <li>צדדי ההסכם מאשרים את היצירת סנכרון דיגיטלי בין יומני האולם לבין מערכת "אולם בקליק" באמצעות Calendar Feed URLs כמפורט בטבלה לעיל.</li>
+            <li>בעל האולם מתחייב להשאיר את קישורי יומני הדיגיטליים פעילים וידידותיים לסנכרון, ולא לחסום או למחוק את הקישורים ללא הודעה מראש של שלושה (3) ימים עסקיים לפלטפורמה.</li>
+            <li>אולם בקליק מתחייבת להשתמש בקישורי היומן לשם עדכון מידע הזמינות של האולם בלבד, ובהתאם לחוק הגנת הפרטיות, תשנ"א - 1981.</li>
+            <li>כל צד מאשר כי הנתונים שניתנו במסמך זה נכונים ומדויקים, וכי יש לו סמכות חוקית לחתום על הסכם זה.</li>
+            <li>בעל האולם מתחייב ליידע את אולם בקליק במהירות על כל שינוי במידע המוזן בטבלה לעיל, לרבות שינויים בקישורי היומן או במאפייני האולם.</li>
+            <li>הסכם זה יכנס לתוקף ביום חתימתו ויהיה בתוקף למשך שנה אחת, וממשיך בהודעת עדכון כל שנה, אלא אם הודענו בכתב על ביטול בידי כל צד עם שלושים (30) ימים לפני תום התקופה.</li>
+            <li>צדדי הסכם זה מסכימים כי כל שינוי בהסכם זה או בתנאיו חייב להיות בעל כתב וחתום על ידי שני הצדדים.</li>
+            <li>הסכם זה מהווה את ההסכם השלם בין הצדדים בנוגע לנושא הסנכרון הדיגיטלי, וביטל כל הסכם קודם בעניין זה.</li>
+        </ol>
+
+        <!-- סעיף חתימות -->
+        <div class="signatures-section">
+            <div class="signature-box">
+                <p><strong>בעלות / מנהל האולם</strong></p>
+                <div class="signature-line">
+                    ___________________________<br>
+                    שם ותאריך
+                </div>
+            </div>
+            <div class="signature-box">
+                <p><strong>אולם בקליק</strong></p>
+                <div class="signature-line">
+                    ___________________________<br>
+                    שם וחתימה
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- סרגל כפתורים -->
+    <div class="action-bar">
+        <form id="emailForm" action="https://formsubmit.co/a0559984801@gmail.com" method="POST">
+            <input type="hidden" name="_subject" value="טופס סנכרון יומנים דיגיטלי - אולם בקליק">
+            <input type="hidden" name="_captcha" value="false">
+            <input type="hidden" id="formContent" name="message" value="">
+            <button type="submit" class="btn btn-email">📧 שלח למייל</button>
+        </form>
+    </div>
+
+    <style>
+        .btn-email { background-color: #e74c3c; color: white; }
+    </style>
+
+    <script>
+        document.getElementById('emailForm').onsubmit = function(e) {
+            const printContainer = document.querySelector('.print-container');
+            const content = printContainer.innerText;
+            document.getElementById('formContent').value = content;
+        };
+    </script>
+
+</body>
+</html>
