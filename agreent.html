@@ -412,7 +412,11 @@
 
     <!-- סרגל שליחה -->
     <div class="action-bar">
-        <button id="sendBtn" class="btn btn-email">📧 שלח כ-PDF</button>
+        <div class="sender-email-wrap">
+            <span class="sender-label">המייל שלך:</span>
+            <input type="email" id="senderEmail" class="sender-email-input" placeholder="your@email.com" required>
+            <button id="sendBtn" class="btn btn-email">📧 שלח כ-PDF</button>
+        </div>
     </div>
 
     <style>
@@ -420,7 +424,7 @@
     </style>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/index.min.js"></script>
+    <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
     <script>
 
     // ===== חתימה על קנבס =====
@@ -466,7 +470,6 @@
     window.addEventListener('load', () => {
         initCanvas('sig_hall');
         initCanvas('sig_click');
-        emailjs.init('d8MTtGcFZHPmX9q4FMe5u');
     });
 
     // ===== אימות שדות טלפון - ספרות בלבד =====
@@ -586,13 +589,20 @@
     function blobToBase64(blob) {
         return new Promise((resolve) => {
             const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result);
+            reader.onloadend = () => resolve(reader.result.split(',')[1]);
             reader.readAsDataURL(blob);
         });
     }
 
     // ===== שליחה =====
     document.getElementById('sendBtn').onclick = async function() {
+        const senderEmail = document.getElementById('senderEmail').value.trim();
+        if (!senderEmail || !senderEmail.includes('@')) {
+            alert('אנא הכנס כתובת מייל תקינה שלך');
+            document.getElementById('senderEmail').focus();
+            return;
+        }
+
         if (!validateForm()) {
             alert('יש למלא את כל השדות המסומנים באדום ולצייר חתימה לפני השליחה');
             document.querySelector('.invalid, [style*="border-bottom: 2px solid"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -606,28 +616,57 @@
         try {
             const data = collectData();
             const pdfBlob = await generatePdfBlob();
-            const pdfBase64 = await blobToBase64(pdfBlob);
+            const companyName = data['שם הבעלים / חברה'] || 'אולם';
+
+            btn.textContent = '⏳ מייצר PDF...';
+
+            // יצירת FormData עם PDF
+            const formData = new FormData();
+            formData.append('access_key', '65683a27-6384-4142-90c8-27888c5d4681');
+            formData.append('subject', `הסכם סנכרון יומנים - ${companyName}`);
+            formData.append('from_name', 'אולם בקליק');
+
+            // הוספת כל הנתונים כ-message
+            let messageContent = '';
+            Object.entries(data).forEach(([key, val]) => {
+                messageContent += `${key}: ${val}\n`;
+            });
+            formData.append('message', messageContent);
+
+            // הוספת ה-PDF כקובץ
+            const pdfFile = new File([pdfBlob], `הסכם_סנכרון_${companyName}.pdf`, { type: 'application/pdf' });
+            formData.append('attachment', pdfFile);
 
             btn.textContent = '⏳ שולח...';
 
-            const emailData = {
-                to_email: 'a0559984801@gmail.com',
-                company_name: data['שם הבעלים / חברה'],
-                city: data['עיר'],
-                manager: data['מנהל האולם'],
-                phone: data['טלפון נציג'],
-                all_data: JSON.stringify(data),
-                pdf_attachment: pdfBase64
-            };
+            // שליחה לבעל האולם
+            const formData1 = new FormData(formData);
+            formData1.set('email', 'a0559984801@gmail.com');
 
-            const response = await emailjs.send('service_o2s2a9o', 'template_zpca5ks', emailData);
+            const res1 = await fetch('https://api.web3forms.com/submit', {
+                method: 'POST',
+                body: formData1
+            });
 
-            if (response.status === 200) {
-                btn.textContent = '✅ נשלח!';
-                showSuccessMessage();
-            } else {
-                throw new Error('שגיאה בשליחה');
+            if (!res1.ok) {
+                throw new Error('שגיאה בשליחה לבעל האולם');
             }
+
+            // שליחה לשולח
+            const formData2 = new FormData(formData);
+            formData2.set('email', senderEmail);
+
+            const res2 = await fetch('https://api.web3forms.com/submit', {
+                method: 'POST',
+                body: formData2
+            });
+
+            if (!res2.ok) {
+                throw new Error('שגיאה בשליחה לכתובתך');
+            }
+
+            btn.textContent = '✅ נשלח!';
+            showSuccessMessage();
 
         } catch (err) {
             console.error(err);
