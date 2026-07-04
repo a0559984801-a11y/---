@@ -640,7 +640,8 @@
             btn.textContent = '⏳ שולח...';
 
             // שליחה לבעל האולם
-            const formData1 = new FormData(formData);
+            const formData1 = new FormData();
+            formData.forEach((value, key) => formData1.append(key, value));
             formData1.set('email', 'a0559984801@gmail.com');
 
             const res1 = await fetch('https://api.web3forms.com/submit', {
@@ -653,7 +654,8 @@
             }
 
             // שליחה לשולח
-            const formData2 = new FormData(formData);
+            const formData2 = new FormData();
+            formData.forEach((value, key) => formData2.append(key, value));
             formData2.set('email', senderEmail);
 
             const res2 = await fetch('https://api.web3forms.com/submit', {
