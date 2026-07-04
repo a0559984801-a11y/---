@@ -353,24 +353,96 @@
 
     <!-- סרגל כפתורים -->
     <div class="action-bar">
-        <form id="emailForm" action="https://formsubmit.co/a0559984801@gmail.com" method="POST">
-            <input type="hidden" name="_subject" value="טופס סנכרון יומנים דיגיטלי - אולם בקליק">
-            <input type="hidden" name="_captcha" value="false">
-            <input type="hidden" id="formContent" name="message" value="">
-            <button type="submit" class="btn btn-email">📧 שלח למייל</button>
-        </form>
+        <button id="sendBtn" class="btn btn-email">📧 שלח למייל בתור PDF</button>
     </div>
 
     <style>
         .btn-email { background-color: #e74c3c; color: white; }
     </style>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
     <script>
-        document.getElementById('emailForm').onsubmit = function(e) {
-            const printContainer = document.querySelector('.print-container');
-            const content = printContainer.innerText;
-            document.getElementById('formContent').value = content;
+        document.getElementById('sendBtn').onclick = async function() {
+            const button = this;
+            button.disabled = true;
+            button.textContent = '⏳ בעיבוד...';
+
+            try {
+                const printContainer = document.querySelector('.print-container');
+
+                // Generate PDF
+                const pdf = await html2pdf().set({
+                    margin: 10,
+                    filename: 'agreement.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+                }).toPdf().get('pdf');
+
+                // Convert PDF to blob
+                pdf.save('agreement.pdf');
+
+                // Create FormData
+                const formData = new FormData();
+                formData.append('_subject', 'טופס סנכרון יומנים דיגיטלי - אולם בקליק');
+                formData.append('_captcha', 'false');
+                formData.append('message', 'טופס מצורף');
+
+                // Create blob from PDF
+                pdf.output('blob', (blob) => {
+                    formData.append('attachment', blob, 'agreement.pdf');
+
+                    // Send to FormSubmit
+                    fetch('https://formsubmit.co/a0559984801@gmail.com', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            button.textContent = '✅ נשלח בהצלחה!';
+                            showSuccessMessage();
+                            setTimeout(() => {
+                                window.close();
+                            }, 3000);
+                        } else {
+                            throw new Error('שגיאה בשליחה');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        button.disabled = false;
+                        button.textContent = '❌ שגיאה בשליחה';
+                    });
+                });
+
+            } catch (error) {
+                console.error('Error:', error);
+                button.disabled = false;
+                button.textContent = '❌ שגיאה בעיבוד';
+            }
         };
+
+        function showSuccessMessage() {
+            const message = document.createElement('div');
+            message.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: #27ae60;
+                color: white;
+                padding: 30px 50px;
+                border-radius: 8px;
+                font-size: 18px;
+                z-index: 2000;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                font-weight: bold;
+                text-align: center;
+            `;
+            message.textContent = '✅ הטופס נשלח למייל בהצלחה!\nהדף יסגור בעוד 3 שניות...';
+            document.body.appendChild(message);
+        }
     </script>
 
 </body>
