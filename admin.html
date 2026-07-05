@@ -1976,6 +1976,9 @@ async function saveSettingsToServer(e) {
 async function postData(e, t) {
   "halls" === e ? await saveHallsToServer(t) : "settings" === e && await saveSettingsToServer(t)
 }
+async function saveToServer(e, t) {
+  return postData("saveSettings" === e ? "settings" : e, t)
+}
 
 function toggleCycleOptions() {
   const e = document.getElementById("slideAnimation").value;
@@ -2150,6 +2153,11 @@ function delAd(e, t) {
 
 function upAd(e, t, n, a) {
   adItems[e][t][n] = a
+}
+
+function safeUrl(u) {
+  u = String(u || '').trim();
+  return /^(https?:|tel:|mailto:|ftp:)/i.test(u) ? u : '#';
 }
 
 function escHtml(e) {
@@ -2382,7 +2390,7 @@ async function saveAll() {
     await saveHalls();
     const e = logoSlides.filter(e => e.url.trim()),
       t = {};
-    ["Top", "Bottom", "Side"].forEach(e => {
+    ["Top", "Bottom", "Side", "Popup"].forEach(e => {
       t["showAd" + e] = adState[e] ? "true" : "false", t["adItems" + e] = JSON.stringify(adItems[e]), t["adText" + e] = adItems[e][0] && adItems[e][0].text || "", t["adLink" + e] = adItems[e][0] && adItems[e][0].link || ""
     }), await saveToServer("saveSettings", {
       siteName: document.getElementById("siteName").value,
@@ -2749,15 +2757,20 @@ async function updateBigTable() {
         o = "תפוס" === l ? "#fde8e8" : "שמור" === l ? "#fef3cd" : "#d4f5e4",
         s = "תפוס" === l ? "#a32020" : "שמור" === l ? "#8a5c00" : "#1a7a45",
         i = `${t.name}|${e.iso}`;
-      d += `<td style="padding:6px;border:1px solid #ddd;background:${o};color:${s};text-align:center;cursor:pointer;font-weight:600;transition:filter 0.2s;" onclick="toggleCell('${i}',this)" onmouseover="this.style.filter='brightness(0.9)'" onmouseout="this.style.filter='brightness(1)'">${l}</td>`
+      d += `<td style="padding:6px;border:1px solid #ddd;background:${o};color:${s};text-align:center;cursor:pointer;font-weight:600;transition:filter 0.2s;" data-key="${escHtml(i)}" onclick="toggleCell(this)" onmouseover="this.style.filter='brightness(0.9)'" onmouseout="this.style.filter='brightness(1)'">${l}</td>`
     }), d += "</tr>"
   }), d += "</table>", document.getElementById("availBigTable").innerHTML = d
 }
 
-function toggleCell(e, t) {
+function toggleCell(t) {
+  const e = t.getAttribute("data-key");
   const r = t.textContent.trim();
   const n = "פנוי" === r ? "תפוס" : "תפוס" === r ? "שמור" : "פנוי";
-  changedCells[e] = n, t.textContent = n, t.style.background = "תפוס" === n ? "#fde8e8" : "שמור" === n ? "#fef3cd" : "#d4f5e4", t.style.color = "תפוס" === n ? "#a32020" : "שמור" === n ? "#8a5c00" : "#1a7a45", t.style.fontWeight = "700"
+  changedCells[e] = n;
+  t.textContent = n;
+  t.style.background = "תפוס" === n ? "#fde8e8" : "שמור" === n ? "#fef3cd" : "#d4f5e4";
+  t.style.color = "תפוס" === n ? "#a32020" : "שמור" === n ? "#8a5c00" : "#1a7a45";
+  t.style.fontWeight = "700";
 }
 async function saveAllChanges() {
   const e = Object.keys(changedCells);
@@ -2833,19 +2846,5 @@ async function saveBtnSettings() {
   t ? alert("שגיאה בשמירה: " + t.message) : showOk("btnSettingsOk")
 }
 
-function upCalendarUrl(e, t, n, a) {
-  halls[e].calendarUrls || (halls[e].calendarUrls = []), halls[e].calendarUrls[t] = halls[e].calendarUrls[t] || {}, halls[e].calendarUrls[t][n] = a, renderHalls()
-}
-
-function addCalendarUrl(e) {
-  halls[e].calendarUrls || (halls[e].calendarUrls = []), halls[e].calendarUrls.push({
-    url: "",
-    label: ""
-  }), renderHalls()
-}
-
-function rmCalendarUrl(e, t) {
-  halls[e].calendarUrls && (halls[e].calendarUrls.splice(t, 1), renderHalls())
-}
  </script>
 </html>

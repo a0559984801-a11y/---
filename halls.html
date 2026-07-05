@@ -12,6 +12,8 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap">
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
 gtag('consent','default',{'analytics_storage':'denied','ad_storage':'denied'});
+function escHtml(e){return String(e||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function safeUrl(u){u=String(u||'').trim();return /^(https?:|tel:|mailto:|ftp:)/i.test(u)?u:'#';}
 </script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-H8MXTNM0HY"></script>
 <script>gtag('js',new Date());gtag('config','G-H8MXTNM0HY');</script>
@@ -368,12 +370,12 @@ function openModal(i){
   if(currentHall.access) rows.push(['♿ נגישות',escHtml(currentHall.access)]);
   if(currentHall.desc) rows.push(['תיאור',escHtml(currentHall.desc)]);
   if(currentHall.links && currentHall.links.length){
-    rows.push(['קישורים',(currentHall.links||[]).map(l=>`<a href="${escHtml(l.url)}" target="_blank" rel="noopener">${escHtml(l.label||l.url)}</a>`).join(' ')]);
+    rows.push(['קישורים',(currentHall.links||[]).map(l=>`<a href="${escHtml(safeUrl(l.url))}" target="_blank" rel="noopener">${escHtml(l.label||l.url)}</a>`).join(' ')]);
   }
   // Custom fields
   if(currentHall.customFields && currentHall.customFields.length){
     currentHall.customFields.filter(f=>f.label && f.value).forEach(f=>{
-      const val=f.type==='link'?`<a href="${escHtml(f.value)}" target="_blank" rel="noopener" style="display:inline-block;padding:4px 14px;background:#1a1a2e;color:white;border-radius:5px;text-decoration:none;font-size:0.8rem;font-weight:600;">קישור ↗</a>`:escHtml(f.value);
+      const val=f.type==='link'?`<a href="${escHtml(safeUrl(f.value))}" target="_blank" rel="noopener" style="display:inline-block;padding:4px 14px;background:#1a1a2e;color:white;border-radius:5px;text-decoration:none;font-size:0.8rem;font-weight:600;">קישור ↗</a>`:escHtml(f.value);
       rows.push([escHtml(f.label),val]);
     });
   }
