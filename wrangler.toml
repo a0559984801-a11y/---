@@ -1,0 +1,24 @@
+name = "ical-sync"
+main = "src/index.js"
+compatibility_date = "2026-07-06"
+
+# Environment configuration
+[env.production]
+routes = [
+  { pattern = "aolam-baclick.com/sync", zone_name = "aolam-baclick.com" }
+]
+
+# Cron triggers for automatic iCal sync
+[triggers]
+crons = ["0 */12 * * *"]
+
+# Supabase configuration via environment bindings
+[env.production.vars]
+SUPABASE_URL = "https://mzrnwtwyuligsaxeoxhh.supabase.co"
+SUPABASE_SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16cm53dHd5dWxpZ3NheGVveGhoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MjgwMTEwNSwiZXhwIjoyMDk4Mzc3MTA1fQ.CJpwLCmlWlTh8X5VF5t8qJe8sZE0H3zcVSJ0wT5S7z0"
+
+# KV namespace for caching (optional)
+[[kv_namespaces]]
+binding = "ICAL_CACHE"
+id = "your_kv_namespace_id"
+preview_id = "your_kv_preview_id"
