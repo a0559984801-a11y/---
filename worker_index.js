@@ -1,11 +1,7 @@
 /**
- * Cloudflare Worker: iCal to Supabase Sync
- * Handles both HTTP requests and Cron triggers
- * 
- * Syncs Google Calendar iCal feeds to Supabase availability table
+ * Cloudflare Worker: iCal to Supabase Sync - Updated
  */
 
-// Supabase client helper
 async function getSupabaseClient(env) {
   const supabaseUrl = env.SUPABASE_URL;
   const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY;
@@ -36,10 +32,31 @@ async function getSupabaseClient(env) {
         data: await response.json(),
       };
     },
+    
+    async rpc(functionName, params) {
+      const headers = {
+        'Authorization': `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json',
+        'apikey': supabaseKey,
+      };
+      
+      const response = await fetch(
+        `${supabaseUrl}/rest/v1/rpc/${functionName}`,
+        {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(params),
+        }
+      );
+      
+      return {
+        status: response.status,
+        data: await response.json(),
+      };
+    },
   };
 }
 
-// Parse iCal format and extract events
 function parseICalEvents(icalText) {
   const events = [];
   const lines = icalText.split('\n');
@@ -58,10 +75,12 @@ function parseICalEvents(icalText) {
       const [key, ...valueParts] = line.split(':');
       const value = valueParts.join(':');
       
-      if (key === 'DTSTART') {
-        currentEvent.startDate = value.split('T')[0];
-      } else if (key === 'DTEND') {
-        currentEvent.endDate = value.split('T')[0];
+      if (key === 'DTSTART' || key.startsWith('DTSTART;')) {
+        const dateStr = value.includes(':') ? value.split(':').pop() : value;
+        currentEvent.startDate = dateStr.split('T')[0];
+      } else if (key === 'DTEND' || key.startsWith('DTEND;')) {
+        const dateStr = value.includes(':') ? value.split(':').pop() : value;
+        currentEvent.endDate = dateStr.split('T')[0];
       } else if (key === 'SUMMARY') {
         currentEvent.summary = value;
       } else if (key === 'DESCRIPTION') {
@@ -73,23 +92,20 @@ function parseICalEvents(icalText) {
   return events;
 }
 
-// Map event summary to availability status
 function getStatus(eventSummary) {
   const summary = (eventSummary || '').toLowerCase();
   
-  if (summary.includes('taken') || summary.includes('booked') || summary.includes('תפוס')) {
-    return 'תפוס';
-  } else if (summary.includes('reserved') || summary.includes('pending') || summary.includes('שמור')) {
+  if (summary.includes('פנוי') || summary.includes('free') || summary.includes('available')) {
+    return 'פנוי';
+  } else if (summary.includes('שמור') || summary.includes('reserved') || summary.includes('pending') || summary.includes('option')) {
     return 'שמור';
   }
   
-  return 'פנוי';
+  return 'תפוס';
 }
 
-// Sync a single hall's iCal URL
 async function syncHallCalendar(hallId, hallName, icalUrl, supabaseClient) {
   try {
-    // Fetch iCal feed
     const icalResponse = await fetch(icalUrl);
     if (!icalResponse.ok) {
       console.error(`Failed to fetch iCal for ${hallName}: ${icalResponse.status}`);
@@ -99,43 +115,58 @@ async function syncHallCalendar(hallId, hallName, icalUrl, supabaseClient) {
     const icalText = await icalResponse.text();
     const events = parseICalEvents(icalText);
     
-    // Insert/update availability records
-    for (const event of events) {
-      if (!event.startDate) continue;
+    // קבל 365 יום הבאים (שנה שלמה)
+    const today = new Date();
+    const endDate = new Date(today);
+    endDate.setDate(endDate.getDate() + 365);
+    
+    // צור set של תאריכים עם events
+    const eventDates = new Map();
+    events.forEach(e => {
+      if (e.startDate) {
+        eventDates.set(e.startDate, e);
+      }
+    });
+    
+    let successCount = 0;
+    
+    // סנכרן כל תאריך ל-365 יום
+    for (let d = new Date(today); d <= endDate; d.setDate(d.getDate() + 1)) {
+      const dateStr = d.toISOString().split('T')[0];
       
-      const availability = {
-        date: event.startDate,
-        hall_name: hallName,
-        status: getStatus(event.summary),
-      };
+      let status_value = 'פנוי';
       
-      // Upsert: update if exists, insert if not
-      const { status, data } = await supabaseClient.request(
-        'POST',
-        '/availability',
-        availability
-      );
+      if (eventDates.has(dateStr)) {
+        const event = eventDates.get(dateStr);
+        status_value = getStatus(event.summary);
+      }
       
-      if (status >= 400) {
-        console.warn(`Failed to sync ${hallName} on ${event.startDate}: ${status}`);
+      const { status, data } = await supabaseClient.rpc('sync_availability', {
+        p_date: dateStr,
+        p_hall_name: hallName,
+        p_status: status_value,
+      });
+      
+      if (status < 400) {
+        successCount++;
+      } else {
+        console.warn(`Failed to sync ${hallName} on ${dateStr}: ${status}`);
       }
     }
     
-    return { success: true, eventCount: events.length };
+    return { success: true, eventCount: events.length, synced: successCount };
   } catch (error) {
     console.error(`Error syncing ${hallName}:`, error.message);
     return { success: false, error: error.message };
   }
 }
 
-// Main sync function - called by both HTTP and Cron
 async function syncAllCalendars(env) {
   console.log('Starting iCal sync...');
   
   const supabaseClient = await getSupabaseClient(env);
   
   try {
-    // Fetch all halls with ical_url
     const { status, data } = await supabaseClient.request(
       'GET',
       '/halls?select=id,name,ical_url&ical_url=not.is.null'
@@ -153,23 +184,28 @@ async function syncAllCalendars(env) {
       };
     }
     
-    // Sync each hall
     const results = {};
+    let totalSynced = 0;
+    
     for (const hall of data) {
       if (hall.ical_url) {
-        results[hall.name] = await syncHallCalendar(
+        const syncResult = await syncHallCalendar(
           hall.id,
           hall.name,
           hall.ical_url,
           supabaseClient
         );
+        results[hall.name] = syncResult;
+        if (syncResult.success) {
+          totalSynced += syncResult.synced || 0;
+        }
       }
     }
     
     return {
       success: true,
       message: 'Sync completed',
-      synced: data.length,
+      synced: totalSynced,
       results,
     };
   } catch (error) {
@@ -181,13 +217,10 @@ async function syncAllCalendars(env) {
   }
 }
 
-// Export handler
 export default {
-  // HTTP endpoint handler
   async fetch(request, env) {
     const url = new URL(request.url);
     
-    // Health check
     if (url.pathname === '/health') {
       return new Response(JSON.stringify({ status: 'ok' }), {
         status: 200,
@@ -195,17 +228,7 @@ export default {
       });
     }
     
-    // Sync endpoint
-    if (url.pathname === '/sync' && request.method === 'POST') {
-      const result = await syncAllCalendars(env);
-      return new Response(JSON.stringify(result), {
-        status: result.success ? 200 : 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-    
-    // GET /sync also works
-    if (url.pathname === '/sync' && request.method === 'GET') {
+    if (url.pathname === '/sync') {
       const result = await syncAllCalendars(env);
       return new Response(JSON.stringify(result), {
         status: result.success ? 200 : 500,
@@ -219,7 +242,6 @@ export default {
     });
   },
   
-  // Cron trigger handler
   async scheduled(event, env) {
     console.log('Cron trigger fired at', new Date().toISOString());
     const result = await syncAllCalendars(env);
