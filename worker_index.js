@@ -1,185 +1,89 @@
-/**
- * Cloudflare Worker: iCal to Supabase Sync - Fixed
- * קורא URLs מטבלת calendar_urls (לא מ-halls.ical_url)
- */
-
 async function getSupabaseClient(env) {
   const supabaseUrl = env.SUPABASE_URL;
   const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY;
-  
   return {
-    url: supabaseUrl,
-    key: supabaseKey,
-    
+    url: supabaseUrl, key: supabaseKey,
     async request(method, path, body = null) {
-      const headers = {
-        'Authorization': `Bearer ${supabaseKey}`,
-        'Content-Type': 'application/json',
-        'apikey': supabaseKey,
-      };
+      const headers = { 'Authorization': `Bearer ${supabaseKey}`, 'Content-Type': 'application/json', 'apikey': supabaseKey };
       const options = { method, headers };
       if (body) options.body = JSON.stringify(body);
       const response = await fetch(`${supabaseUrl}/rest/v1${path}`, options);
       return { status: response.status, data: await response.json() };
     },
-    
     async rpc(functionName, params) {
-      const headers = {
-        'Authorization': `Bearer ${supabaseKey}`,
-        'Content-Type': 'application/json',
-        'apikey': supabaseKey,
-      };
-      const response = await fetch(
-        `${supabaseUrl}/rest/v1/rpc/${functionName}`,
-        { method: 'POST', headers, body: JSON.stringify(params) }
-      );
+      const headers = { 'Authorization': `Bearer ${supabaseKey}`, 'Content-Type': 'application/json', 'apikey': supabaseKey };
+      const response = await fetch(`${supabaseUrl}/rest/v1/rpc/${functionName}`, { method: 'POST', headers, body: JSON.stringify(params) });
       return { status: response.status, data: await response.json() };
-    },
+    }
   };
 }
 
 function parseICalEvents(icalText) {
-  const events = [];
-  const lines = icalText.split('\n');
-  let currentEvent = null;
-  
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-    
-    if (line === 'BEGIN:VEVENT') {
-      currentEvent = {};
-    } else if (line === 'END:VEVENT' && currentEvent) {
-      events.push(currentEvent);
-      currentEvent = null;
-    } else if (currentEvent && line.includes(':')) {
-      const [key, ...valueParts] = line.split(':');
-      const value = valueParts.join(':');
-      
-      if (key === 'DTSTART' || key.startsWith('DTSTART;')) {
-        const dateStr = value.includes(':') ? value.split(':').pop() : value;
-        currentEvent.startDate = dateStr.split('T')[0];
-      } else if (key === 'DTEND' || key.startsWith('DTEND;')) {
-        const dateStr = value.includes(':') ? value.split(':').pop() : value;
-        currentEvent.endDate = dateStr.split('T')[0];
-      } else if (key === 'SUMMARY') {
-        currentEvent.summary = value;
-      }
+  const events = [], lines = icalText.split('\n');
+  let cur = null;
+  for (const line of lines) {
+    const l = line.trim();
+    if (l === 'BEGIN:VEVENT') cur = {};
+    else if (l === 'END:VEVENT' && cur) { events.push(cur); cur = null; }
+    else if (cur && l.includes(':')) {
+      const [key, ...vp] = l.split(':'), value = vp.join(':');
+      if (key === 'DTSTART' || key.startsWith('DTSTART;')) cur.startDate = (value.includes(':') ? value.split(':').pop() : value).split('T')[0];
+      else if (key === 'SUMMARY') cur.summary = value;
     }
   }
-  
   return events;
 }
 
-function getStatus(eventSummary) {
-  const summary = (eventSummary || '').toLowerCase();
-  if (summary.includes('פנוי') || summary.includes('free') || summary.includes('available')) {
-    return 'פנוי';
-  } else if (summary.includes('שמור') || summary.includes('reserved') || summary.includes('pending') || summary.includes('option')) {
-    return 'שמור';
-  }
+function getStatus(s) {
+  const v = (s || '').toLowerCase();
+  if (v.includes('פנוי') || v.includes('free') || v.includes('available')) return 'פנוי';
+  if (v.includes('שמור') || v.includes('reserved') || v.includes('pending')) return 'שמור';
   return 'תפוס';
 }
 
-async function syncHallCalendar(hallName, icalUrl, supabaseClient) {
-  try {
-    const icalResponse = await fetch(icalUrl);
-    if (!icalResponse.ok) {
-      return { success: false, error: `HTTP ${icalResponse.status}` };
-    }
-    
-    const icalText = await icalResponse.text();
-    const events = parseICalEvents(icalText);
-    
-    const today = new Date();
-    const endDate = new Date(today);
-    endDate.setDate(endDate.getDate() + 365);
-    
-    const eventDates = new Map();
-    events.forEach(e => {
-      if (e.startDate) eventDates.set(e.startDate, e);
-    });
-    
-    let successCount = 0;
-    for (let d = new Date(today); d <= endDate; d.setDate(d.getDate() + 1)) {
-      const dateStr = d.toISOString().split('T')[0];
-      let status_value = 'פנוי';
-      if (eventDates.has(dateStr)) {
-        status_value = getStatus(eventDates.get(dateStr).summary);
-      }
-      const { status } = await supabaseClient.rpc('sync_availability', {
-        p_date: dateStr,
-        p_hall_name: hallName,
-        p_status: status_value,
-      });
-      if (status < 400) successCount++;
-    }
-    
-    return { success: true, eventCount: events.length, synced: successCount };
-  } catch (error) {
-    return { success: false, error: error.message };
+async function syncHall(hallName, icalUrl, sb) {
+  const r = await fetch(icalUrl);
+  if (!r.ok) return { success: false, error: `HTTP ${r.status}` };
+  const events = parseICalEvents(await r.text());
+  const eventDates = new Map();
+  events.forEach(e => e.startDate && eventDates.set(e.startDate, e));
+  const today = new Date(), end = new Date(today);
+  end.setDate(end.getDate() + 365);
+  let ok = 0;
+  for (let d = new Date(today); d <= end; d.setDate(d.getDate() + 1)) {
+    const dateStr = d.toISOString().split('T')[0];
+    const status_value = eventDates.has(dateStr) ? getStatus(eventDates.get(dateStr).summary) : 'פנוי';
+    const { status } = await sb.rpc('sync_availability', { p_date: dateStr, p_hall_name: hallName, p_status: status_value });
+    if (status < 400) ok++;
   }
+  return { success: true, eventCount: events.length, synced: ok };
 }
 
-async function syncAllCalendars(env) {
-  const supabaseClient = await getSupabaseClient(env);
-  
-  try {
-    // קורא מ-calendar_urls במקום halls.ical_url
-    const { status, data } = await supabaseClient.request(
-      'GET',
-      '/calendar_urls?select=id,hall_id,url,label,halls(name)&is_active=eq.true'
-    );
-    
-    if (status >= 400) {
-      throw new Error(`Failed to fetch calendar_urls: ${status} ${JSON.stringify(data)}`);
-    }
-    
-    if (!Array.isArray(data) || data.length === 0) {
-      return { success: true, message: 'No active calendar URLs found', synced: 0 };
-    }
-    
-    const results = {};
-    let totalSynced = 0;
-    
-    for (const calUrl of data) {
-      const hallName = calUrl.halls?.name || `hall_${calUrl.hall_id}`;
-      const syncResult = await syncHallCalendar(hallName, calUrl.url, supabaseClient);
-      results[hallName] = syncResult;
-      if (syncResult.success) totalSynced += syncResult.synced || 0;
-    }
-    
-    return { success: true, message: 'Sync completed', synced: totalSynced, results };
-  } catch (error) {
-    return { success: false, error: error.message };
+async function syncAll(env) {
+  const sb = await getSupabaseClient(env);
+  const { status, data } = await sb.request('GET', '/calendar_urls?select=id,hall_id,url,halls(name)&is_active=eq.true');
+  if (status >= 400) return { success: false, error: `calendar_urls fetch failed: ${status}` };
+  if (!Array.isArray(data) || !data.length) return { success: true, message: 'No active URLs', synced: 0 };
+  const results = {};
+  let total = 0;
+  for (const row of data) {
+    const name = row.halls?.name || `hall_${row.hall_id}`;
+    const res = await syncHall(name, row.url, sb);
+    results[name] = res;
+    if (res.success) total += res.synced || 0;
   }
+  return { success: true, synced: total, results };
 }
 
 export default {
   async fetch(request, env) {
-    const url = new URL(request.url);
-    
-    if (url.pathname === '/health') {
-      return new Response(JSON.stringify({ status: 'ok' }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      });
+    const { pathname } = new URL(request.url);
+    if (pathname === '/health') return new Response(JSON.stringify({ status: 'ok' }), { headers: { 'Content-Type': 'application/json' } });
+    if (pathname === '/sync') {
+      const result = await syncAll(env);
+      return new Response(JSON.stringify(result, null, 2), { status: result.success ? 200 : 500, headers: { 'Content-Type': 'application/json' } });
     }
-    
-    if (url.pathname === '/sync') {
-      const result = await syncAllCalendars(env);
-      return new Response(JSON.stringify(result, null, 2), {
-        status: result.success ? 200 : 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-    
-    return new Response(JSON.stringify({ error: 'Not found' }), {
-      status: 404,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return new Response(JSON.stringify({ error: 'Not found' }), { status: 404, headers: { 'Content-Type': 'application/json' } });
   },
-  
-  async scheduled(event, env) {
-    await syncAllCalendars(env);
-  },
+  async scheduled(event, env) { await syncAll(env); }
 };
