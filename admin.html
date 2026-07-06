@@ -2030,7 +2030,14 @@ async function loadAll() {
         links: []
       }))
     }
-    applySettings(), renderHalls(), renderOrderList()
+    applySettings(), renderHalls(), renderOrderList(), setTimeout(() => {
+      halls.forEach((_, i) => {
+        const d = document.getElementById("hallDetails_" + i);
+        const a = document.getElementById("hallArrow_" + i);
+        if(d) d.style.display = "block";
+        if(a) a.style.transform = "rotate(90deg)";
+      });
+    }, 100)
   } catch (e) {
     console.error("loadAll FAILED:", e)
   }
