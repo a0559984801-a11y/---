@@ -801,7 +801,34 @@ textarea {
   background: #f0ede8;
   font-weight: 700
 }
- </style>
+ 
+/* Sticky halls header */
+#hallsList .hall-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #fff;
+  padding: 4px 0;
+}
+
+/* Realtime status badge */
+.status-תפוס { color: #a32020; background: #fde8e8; border-radius: 4px; padding: 1px 6px; font-size: 0.72rem; font-weight: 700; }
+.status-שמור { color: #7a5c00; background: #fff3cd; border-radius: 4px; padding: 1px 6px; font-size: 0.72rem; font-weight: 700; }
+.status-פנוי { color: #1a7a45; background: #d4f5e4; border-radius: 4px; padding: 1px 6px; font-size: 0.72rem; font-weight: 700; }
+
+/* URL textarea */
+.url-textarea {
+  width: 100%;
+  height: 55px;
+  padding: 7px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-family: monospace;
+  font-size: 0.73rem;
+  resize: vertical;
+  box-sizing: border-box;
+}
+</style>
  <div id="passwordGate">
   <div id="passwordBox">
    <h2>
@@ -866,6 +893,9 @@ textarea {
     </button>
     <button class="nav-btn" onclick='show("buttons",event)'>
      🎨 כפתורים
+    </button>
+    <button class="nav-btn" onclick='show("urls",event)'>
+     🔗 URLs
     </button>
     <button class="nav-btn" onclick='show("security",event)'>
      🔑 סיסמה
@@ -1188,6 +1218,24 @@ textarea {
         ✓ נשמר!
        </div>
       </p>
+     </div>
+    </div>
+    <div class="panel" id="panel-urls">
+     <h2>
+      🔗 ניהול Google Calendar URLs
+     </h2>
+     <div class="card">
+      <p style="color:#666;margin-bottom:16px;font-size:.82rem">
+       הוסף כתובת iCal מGoogle Calendar לכל אולם לסנכרון אוטומטי.
+      </p>
+      <div id="urlsList" style="display:flex;flex-direction:column;gap:12px">
+      </div>
+      <button class="btn-save" onclick="saveAllUrls()" style="margin-top:16px">
+       💾 שמור URLs
+      </button>
+      <div class="ok" id="urlsOk">
+       ✓ נשמר! הסנכרון יתעדכן בדקה הבאה
+      </div>
      </div>
     </div>
     <div class="panel" id="panel-hidden-dates">
@@ -1903,7 +1951,7 @@ const _panels = document.querySelectorAll(".panel"),
   _navBtns = document.querySelectorAll(".nav-btn");
 
 function show(e, t) {
-  _panels.forEach(e => e.classList.remove("active")), _navBtns.forEach(e => e.classList.remove("active")), document.getElementById("panel-" + e).classList.add("active"), t.target.classList.add("active"), "order" === e && renderOrderList(), "stats" === e && loadHallViewStats(), "hidden-dates" === e && renderHideCalendar(), "availability" === e && initAvailabilityTab()
+  _panels.forEach(e => e.classList.remove("active")), _navBtns.forEach(e => e.classList.remove("active")), document.getElementById("panel-" + e).classList.add("active"), t.target.classList.add("active"), "order" === e && renderOrderList(), "stats" === e && loadHallViewStats(), "hidden-dates" === e && renderHideCalendar(), "availability" === e && initAvailabilityTab(), "urls" === e && loadUrls()
 }
 
 function showOk(e) {
@@ -2030,7 +2078,7 @@ async function loadAll() {
         links: []
       }))
     }
-    applySettings(), renderHalls(), renderOrderList(), setTimeout(() => {
+    applySettings(), renderHalls(), renderOrderList(), loadUrls(), loadTodayAvailability(), subscribeRealtime(), setTimeout(() => {
       halls.forEach((_, i) => {
         const d = document.getElementById("hallDetails_" + i);
         const a = document.getElementById("hallArrow_" + i);
@@ -2182,7 +2230,7 @@ async function saveAds() {
 }
 
 function renderHalls() {
-  document.getElementById("hallsList").innerHTML = halls.map((e, t) => `\n    <div id="hallCard_${t}" style="border:1px solid #eee;border-radius:8px;margin-bottom:10px;background:#fafafa;overflow:hidden">\n      <div onclick="toggleHall(${t})" style="display:flex;justify-content:space-between;align-items:center;padding:12px;cursor:pointer;user-select:none">\n        <div style="display:flex;align-items:center;gap:8px">\n          <span id="hallArrow_${t}" style="font-size:0.85rem;transition:transform 0.2s;display:inline-block">▶</span>\n          <strong style="font-size:0.9rem;color:#1a1a2e">${e.name||"אולם "+(t+1)}</strong>\n        </div>\n        <button onclick="event.stopPropagation();rmHall(${t})" style="background:#fde8e8;color:#a32020;border:none;border-radius:5px;padding:3px 10px;cursor:pointer;font-size:0.78rem">מחק</button>\n      </div>\n      <div id="hallDetails_${t}" style="display:none;padding:0 12px 12px">\n        <label style="margin-top:8px">שם האולם</label>\n        <input type="text" value="${escHtml(e.name||"")}" onchange="upHall(${t},'name',this.value)"/>\n        <label>עיר</label>\n        <input type="text" value="${escHtml(e.city||"")}" onchange="upHall(${t},'city',this.value)"/>\n        <label>רחוב</label>\n        <input type="text" value="${escHtml(e.street||"")}" onchange="upHall(${t},'street',this.value)"/>\n        <label>טלפון</label>\n        <input type="text" value="${escHtml(e.phone||"")}" placeholder="050-0000000" onchange="upHall(${t},'phone',this.value)"/>\n        <label>כתובות יומן Google (iCal) — לסנכרון אוטומטי של זמינות</label>\n        <div id="calendarUrlsSection_${t}">${renderCalendarUrlsList(t, e.calendarUrls||[])}</div>\n        <label>כשרות</label>\n        <input type="text" value="${escHtml(e.kashrut||"")}" onchange="upHall(${t},'kashrut',this.value)"/>\n        <label>נגישות</label>\n        <select onchange="upHall(${t},'access',this.value)">\n          <option value="">-- בחר --</option>\n          <option value="כן" ${"כן"===e.access?"selected":""}>כן</option>\n          <option value="לא" ${"לא"===e.access?"selected":""}>לא</option>\n        </select>\n        <label>מספר מקומות</label>\n        <input type="number" value="${escHtml(String(e.seats||""))}" onchange="upHall(${t},'seats',this.value)"/>\n        <label>תיאור (לעמוד מידע)</label>\n        <textarea onchange="upHall(${t},'desc',this.value)">${escHtml(e.desc||"")}</textarea>\n        <label>תמונה ראשונה (קישור Cloudinary)</label>\n        <input type="url" value="${escHtml(e.img||"")}" placeholder="https://res.cloudinary.com/..." onchange="upHall(${t},'img',this.value)"/>\n        ${e.img?`<img src="${escHtml(e.img)}" style="max-width:100%;max-height:80px;border-radius:6px;margin:4px 0 6px"/>`:""}  \n\n        \x3c!-- Multiple Images Gallery --\x3e\n        <div style="margin-top:12px;border-top:1px dashed #ddd;padding-top:10px">\n          <div style="font-size:0.78rem;font-weight:700;color:#555;margin-bottom:8px">🖼️ גלריית תמונות נוספות</div>\n          <div id="imagesList_${t}">\n            ${renderImagesList(t,e.images||[])}\n          </div>\n          <button class="btn-add-field" onclick="addImage(${t})">+ הוסף תמונה</button>\n        </div>\n\n        \x3c!-- Custom fields --\x3e\n        <div style="margin-top:12px;border-top:1px dashed #ddd;padding-top:10px">\n          <div style="font-size:0.75rem;font-weight:700;color:#555;margin-bottom:8px">📋 שדות נוספים (מוצגים בעמוד האולמות)</div>\n          <div id="customFields_${t}">${renderCustomFields(t,e.customFields||[])}</div>\n          <button class="btn-add-field" onclick="addCustomField(${t})">+ הוסף שדה</button>\n        </div>\n      </div>\n    </div>\n  `).join("")
+  document.getElementById("hallsList").innerHTML = halls.map((e, t) => `\n    <div id="hallCard_${t}" style="border:1px solid #eee;border-radius:8px;margin-bottom:10px;background:#fafafa;overflow:hidden">\n      <div onclick="toggleHall(${t})" style="display:flex;justify-content:space-between;align-items:center;padding:12px;cursor:pointer;user-select:none;position:sticky;top:0;background:#fafafa;z-index:5;border-bottom:1px solid #f0f0f0">\n        <div style="display:flex;align-items:center;gap:8px">\n          <span id="hallArrow_${t}" style="font-size:0.85rem;transition:transform 0.2s;display:inline-block">▶</span>\n          <strong style="font-size:0.9rem;color:#1a1a2e">${e.name||"אולם "+(t+1)}</strong>\n          <span id="hallStatus_${t}" style="font-size:0.75rem;color:#888;margin-right:8px">⏳</span>\n        </div>\n        <button onclick="event.stopPropagation();rmHall(${t})" style="background:#fde8e8;color:#a32020;border:none;border-radius:5px;padding:3px 10px;cursor:pointer;font-size:0.78rem">מחק</button>\n      </div>\n      <div id="hallDetails_${t}" style="display:none;padding:0 12px 12px">\n        <label style="margin-top:8px">שם האולם</label>\n        <input type="text" value="${escHtml(e.name||"")}" onchange="upHall(${t},'name',this.value)"/>\n        <label>עיר</label>\n        <input type="text" value="${escHtml(e.city||"")}" onchange="upHall(${t},'city',this.value)"/>\n        <label>רחוב</label>\n        <input type="text" value="${escHtml(e.street||"")}" onchange="upHall(${t},'street',this.value)"/>\n        <label>טלפון</label>\n        <input type="text" value="${escHtml(e.phone||"")}" placeholder="050-0000000" onchange="upHall(${t},'phone',this.value)"/>\n        <label>כתובות יומן Google (iCal) — לסנכרון אוטומטי של זמינות</label>\n        <div id="calendarUrlsSection_${t}">${renderCalendarUrlsList(t, e.calendarUrls||[])}</div>\n        <label>כשרות</label>\n        <input type="text" value="${escHtml(e.kashrut||"")}" onchange="upHall(${t},'kashrut',this.value)"/>\n        <label>נגישות</label>\n        <select onchange="upHall(${t},'access',this.value)">\n          <option value="">-- בחר --</option>\n          <option value="כן" ${"כן"===e.access?"selected":""}>כן</option>\n          <option value="לא" ${"לא"===e.access?"selected":""}>לא</option>\n        </select>\n        <label>מספר מקומות</label>\n        <input type="number" value="${escHtml(String(e.seats||""))}" onchange="upHall(${t},'seats',this.value)"/>\n        <label>תיאור (לעמוד מידע)</label>\n        <textarea onchange="upHall(${t},'desc',this.value)">${escHtml(e.desc||"")}</textarea>\n        <label>תמונה ראשונה (קישור Cloudinary)</label>\n        <input type="url" value="${escHtml(e.img||"")}" placeholder="https://res.cloudinary.com/..." onchange="upHall(${t},'img',this.value)"/>\n        ${e.img?`<img src="${escHtml(e.img)}" style="max-width:100%;max-height:80px;border-radius:6px;margin:4px 0 6px"/>`:""}  \n\n        \x3c!-- Multiple Images Gallery --\x3e\n        <div style="margin-top:12px;border-top:1px dashed #ddd;padding-top:10px">\n          <div style="font-size:0.78rem;font-weight:700;color:#555;margin-bottom:8px">🖼️ גלריית תמונות נוספות</div>\n          <div id="imagesList_${t}">\n            ${renderImagesList(t,e.images||[])}\n          </div>\n          <button class="btn-add-field" onclick="addImage(${t})">+ הוסף תמונה</button>\n        </div>\n\n        \x3c!-- Custom fields --\x3e\n        <div style="margin-top:12px;border-top:1px dashed #ddd;padding-top:10px">\n          <div style="font-size:0.75rem;font-weight:700;color:#555;margin-bottom:8px">📋 שדות נוספים (מוצגים בעמוד האולמות)</div>\n          <div id="customFields_${t}">${renderCustomFields(t,e.customFields||[])}</div>\n          <button class="btn-add-field" onclick="addCustomField(${t})">+ הוסף שדה</button>\n        </div>\n      </div>\n    </div>\n  `).join("")
 }
 
 function toggleHall(e) {
@@ -2802,6 +2850,98 @@ async function saveAllChanges() {
   }
   changedCells = {}, t.style.display = "block", setTimeout(() => t.style.display = "none", 2e3)
 }
+// ================== URLs MANAGEMENT ==================
+async function loadUrls() {
+  const { data } = await sb.from('halls').select('id, name, ical_url').order('name');
+  if (!data) return;
+  
+  const urlsList = document.getElementById('urlsList');
+  urlsList.innerHTML = data.map(hall => `
+    <div style="border:1px solid #ddd;border-radius:8px;padding:12px;background:#fafafa">
+      <div style="font-weight:bold;margin-bottom:6px;color:#1a1a2e;font-size:0.9rem">${hall.name}</div>
+      <textarea 
+        id="url_${hall.id}" 
+        class="url-textarea"
+        placeholder="https://calendar.google.com/calendar/ical/...">${hall.ical_url || ''}</textarea>
+      <div style="margin-top:4px;font-size:0.72rem;color:${hall.ical_url ? '#1a7a45' : '#aaa'}">${hall.ical_url ? '✅ מוגדר' : '⬜ לא מוגדר'}</div>
+    </div>
+  `).join('');
+}
+
+async function saveAllUrls() {
+  const { data: hallsData } = await sb.from('halls').select('id');
+  if (!hallsData) return;
+  
+  const updates = hallsData.map(hall => {
+    const textarea = document.getElementById(`url_${hall.id}`);
+    const val = textarea ? textarea.value.trim() : null;
+    return { id: hall.id, ical_url: val || null };
+  });
+  
+  let hasError = false;
+  for (const u of updates) {
+    const { error } = await sb.from('halls').update({ ical_url: u.ical_url }).eq('id', u.id);
+    if (error) { hasError = true; console.error(error); }
+  }
+  
+  if (hasError) {
+    alert('שגיאה בשמירה');
+  } else {
+    showOk('urlsOk');
+    // Trigger sync
+    fetch('https://ical-sync-production.a0559984801.workers.dev/sync').catch(() => {});
+    loadUrls();
+  }
+}
+
+// ================== REALTIME AVAILABILITY ==================
+let realtimeChannel = null;
+let todayAvailability = {};
+
+async function loadTodayAvailability() {
+  const today = new Date().toISOString().split('T')[0];
+  const { data } = await sb.from('זמינות').select('*').eq('תאריך', today).limit(1);
+  
+  if (data && data.length > 0) {
+    todayAvailability = data[0];
+    updateHallStatusBadges();
+  }
+}
+
+function updateHallStatusBadges() {
+  halls.forEach((hall, i) => {
+    const badge = document.getElementById('hallStatus_' + i);
+    if (!badge) return;
+    
+    const status = todayAvailability[hall.name];
+    if (status) {
+      badge.innerHTML = `<span class="status-${status}">${status}</span>`;
+    } else {
+      badge.innerHTML = '';
+    }
+  });
+}
+
+function subscribeRealtime() {
+  if (realtimeChannel) {
+    sb.removeChannel(realtimeChannel);
+  }
+  
+  realtimeChannel = sb.channel('realtime-זמינות')
+    .on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'זמינות'
+    }, payload => {
+      const today = new Date().toISOString().split('T')[0];
+      if (payload.new && payload.new['תאריך'] === today) {
+        todayAvailability = { ...todayAvailability, ...payload.new };
+        updateHallStatusBadges();
+      }
+    })
+    .subscribe();
+}
+
 const BTN_KEYS = ["filter", "halls", "contact", "advertise"];
 
 function cap(e) {
