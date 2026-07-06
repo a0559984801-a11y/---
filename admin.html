@@ -3,7 +3,7 @@
  <meta charset="utf-8"/>
  <link href="favicon.png" rel="icon" type="image/png"/>
  <link href="favicon.png" rel="apple-touch-icon"/>
- <meta content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https: data: blob:; media-src 'self' https:; connect-src 'self' https://mzrnwtwyuligsaxeoxhh.supabase.co https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com; frame-src 'none'; object-src 'none'; base-uri 'self';" http-equiv="Content-Security-Policy"/>
+ <meta content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https: data: blob:; media-src 'self' https:; connect-src 'self' https://mzrnwtwyuligsaxeoxhh.supabase.co https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com; frame-src 'none'; frame-ancestors 'none'; object-src 'none'; base-uri 'self';" http-equiv="Content-Security-Policy"/>
  <meta content="strict-origin-when-cross-origin" name="referrer"/>
  <meta content="width=device-width,initial-scale=1" name="viewport"/>
  <link href="https://fonts.googleapis.com" rel="preconnect"/>
@@ -2259,6 +2259,9 @@ async function saveCalendarUrls(hallId, urls) {
         label: ""
       })))
     }
+    // עדכן ical_url בhalls (URL ראשון בלבד, לסנכרון Worker)
+    const firstUrl = filtered.length ? filtered[0] : null;
+    await sb.from("halls").update({ ical_url: firstUrl }).eq("id", hallId);
   } catch (err) {
     console.error("saveCalendarUrls failed", err)
   }
