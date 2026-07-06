@@ -1,5 +1,6 @@
 /**
- * Cloudflare Worker: iCal to Supabase Sync - Updated
+ * Cloudflare Worker: iCal to Supabase Sync - Complete
+ * Deletes old data and syncs fresh from Google Calendar
  */
 
 async function getSupabaseClient(env) {
@@ -130,7 +131,7 @@ async function syncHallCalendar(hallId, hallName, icalUrl, supabaseClient) {
     
     let successCount = 0;
     
-    // סנכרן כל תאריך ל-90 יום
+    // סנכרן כל תאריך ל-365 יום
     for (let d = new Date(today); d <= endDate; d.setDate(d.getDate() + 1)) {
       const dateStr = d.toISOString().split('T')[0];
       
