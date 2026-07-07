@@ -37,14 +37,17 @@ function parseICalEvents(icalText) {
 function getStatus(s) {
   const v = (s || '').toLowerCase();
   if (v.includes('פנוי') || v.includes('free') || v.includes('available')) return 'פנוי';
+  if (v.includes('התפנה')) return 'פנוי';
   if (v.includes('שמור') || v.includes('reserved') || v.includes('pending')) return 'שמור';
   return 'תפוס';
 }
 
 async function syncHall(hallName, icalUrl, sb) {
+  console.log('syncHall start:', hallName, icalUrl);
   const r = await fetch(icalUrl);
   if (!r.ok) return { success: false, error: `HTTP ${r.status}` };
   const events = parseICalEvents(await r.text());
+  console.log('Events parsed:', events.length);
   const eventDates = new Map();
   events.forEach(e => e.startDate && eventDates.set(e.startDate, e));
   const today = new Date(), end = new Date(today);
@@ -56,19 +59,24 @@ async function syncHall(hallName, icalUrl, sb) {
     const { status } = await sb.rpc('sync_availability', { p_date: dateStr, p_hall_name: hallName, p_status: status_value });
     if (status < 400) ok++;
   }
+  console.log('syncHall done:', hallName, ok, 'synced');
   return { success: true, eventCount: events.length, synced: ok };
 }
 
 async function syncAll(env) {
+  console.log('Starting sync, SUPABASE_URL:', env.SUPABASE_URL);
   const sb = await getSupabaseClient(env);
   const { status, data } = await sb.request('GET', '/calendar_urls?select=id,hall_id,url,halls(name)&is_active=eq.true');
+  console.log('calendar_urls status:', status, 'data length:', data?.length);
   if (status >= 400) return { success: false, error: `calendar_urls fetch failed: ${status}` };
   if (!Array.isArray(data) || !data.length) return { success: true, message: 'No active URLs', synced: 0 };
   const results = {};
   let total = 0;
   for (const row of data) {
     const name = row.halls?.name || `hall_${row.hall_id}`;
+    console.log('Syncing hall:', name, 'URL:', row.url);
     const res = await syncHall(name, row.url, sb);
+    console.log('Sync result:', name, res);
     results[name] = res;
     if (res.success) total += res.synced || 0;
   }
