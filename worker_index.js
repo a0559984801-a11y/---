@@ -36,7 +36,7 @@ function parseICalEvents(icalText) {
 
 function getStatus(s) {
   const v = (s || '').toLowerCase().trim();
-  if (!v || v.includes('פנוי') || v.includes('free')) return 'פנוי';
+ if (!v || v.includes('פנוי') || v.includes('free')) return 'פנוי';
   if (v.includes('שמור') || v.includes('reserved')) return 'שמור';
   if (v.includes('תפוס') || v.includes('busy')) return 'תפוס';
   return 'פנוי';
