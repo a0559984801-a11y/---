@@ -2,118 +2,106 @@ async function getSupabaseClient(env) {
   const supabaseUrl = env.SUPABASE_URL;
   const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY;
   return {
-    url: supabaseUrl, key: supabaseKey,
+    url: supabaseUrl,
+    key: supabaseKey,
     async request(method, path, body = null) {
-      const headers = { 'Authorization': `Bearer ${supabaseKey}`, 'Content-Type': 'application/json', 'apikey': supabaseKey };
+      const headers = {
+        'Authorization': `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json',
+        'apikey': supabaseKey
+      };
       const options = { method, headers };
       if (body) options.body = JSON.stringify(body);
       const response = await fetch(`${supabaseUrl}/rest/v1${path}`, options);
-      return { status: response.status, data: await response.json() };
-    },
-    async rpc(functionName, params) {
-      const headers = { 'Authorization': `Bearer ${supabaseKey}`, 'Content-Type': 'application/json', 'apikey': supabaseKey };
-      const response = await fetch(`${supabaseUrl}/rest/v1/rpc/${functionName}`, { method: 'POST', headers, body: JSON.stringify(params) });
       return { status: response.status, data: await response.json() };
     }
   };
 }
 
 function parseICalEvents(icalText) {
-  const events = [], lines = icalText.split('\n');
-  let cur = null;
+  const events = [];
+  const lines = icalText.split('\n');
+  let current = null;
+  
   for (const line of lines) {
-    const l = line.trim();
-    if (l === 'BEGIN:VEVENT') cur = {};
-    else if (l === 'END:VEVENT' && cur) { events.push(cur); cur = null; }
-    else if (cur && l.includes(':')) {
-      const [key, ...vp] = l.split(':'), value = vp.join(':');
+    const trimmed = line.trim();
+    if (trimmed === 'BEGIN:VEVENT') {
+      current = {};
+    } else if (trimmed === 'END:VEVENT' && current) {
+      events.push(current);
+      current = null;
+    } else if (current && trimmed.includes(':')) {
+      const [key, ...rest] = trimmed.split(':');
+      const value = rest.join(':');
+      
       if (key === 'DTSTART' || key.startsWith('DTSTART;')) {
         const dateStr = (value.includes(':') ? value.split(':').pop() : value).split('T')[0];
-        cur.startDate = dateStr;
-        console.log('Date extracted:', dateStr, 'from', value);
+        current.startDate = dateStr;
+      } else if (key === 'SUMMARY') {
+        current.summary = value;
       }
-      else if (key === 'SUMMARY') cur.summary = value;
     }
   }
-  return events;
-}(icalText) {
-  const events = [], lines = icalText.split('\n');
-  let cur = null;
-  for (const line of lines) {
-    const l = line.trim();
-    if (l === 'BEGIN:VEVENT') cur = {};
-    else if (l === 'END:VEVENT' && cur) { events.push(cur); cur = null; }
-    else if (cur && l.includes(':')) {
-      const [key, ...vp] = l.split(':'), value = vp.join(':');
-      if (key === 'DTSTART' || key.startsWith('DTSTART;')) cur.startDate = (value.includes(':') ? value.split(':').pop() : value).split('T')[0];
-      else if (key === 'SUMMARY') cur.summary = value;
-    }
-  }
-  return events;
-}
-
-function getStatus(s) {
-  const v = (s || '').toLowerCase().trim();
-  if (!v || v.includes('פנוי') || v.includes('free')) return 'פנוי';
-  if (v.includes('שמור') || v.includes('reserved')) return 'שמור';
-  if (v.includes('תפוס') || v.includes('busy')) return 'תפוס';
-  return 'פנוי';
-}
-
-async function syncHall(hallName, icalUrl, sb) {
-  console.log('syncHall start:', hallName, icalUrl);
-  const r = await fetch(icalUrl);
-  if (!r.ok) return { success: false, error: `HTTP ${r.status}` };
-  const events = parseICalEvents(await r.text());
-  console.log('Events parsed:', events.length);
-  const eventDates = new Map();
-  events.forEach(e => e.startDate && eventDates.set(e.startDate, e));
-  const today = new Date(), end = new Date(today);
-  end.setDate(end.getDate() + 365);
   
-  const rows = [];
-  for (let d = new Date(today); d <= end; d.setDate(d.getDate() + 1)) {
-    const dateStr = d.toISOString().split('T')[0];
-    const status_value = eventDates.has(dateStr) ? getStatus(eventDates.get(dateStr).summary) : 'פנוי';
-    rows.push({ p_date: dateStr, p_hall_name: hallName, p_status: status_value });
-  }
-  
-  console.log('Calling RPC with', rows.length, 'rows');
-  const { status, data } = await sb.rpc('sync_availability_batch', { rows });
-  console.log('RPC response:', status, data);
-  if (status >= 400) return { success: false, error: `RPC failed: ${status}`, data };
-  return { success: true, synced: rows.length };
-}
-
-async function syncAll(env) {
-  console.log('Starting sync, SUPABASE_URL:', env.SUPABASE_URL);
-  const sb = await getSupabaseClient(env);
-  const { status, data } = await sb.request('GET', '/calendar_urls?select=id,hall_id,url,halls(name)&is_active=eq.true');
-  console.log('calendar_urls status:', status, 'data length:', data?.length);
-  if (status >= 400) return { success: false, error: `calendar_urls fetch failed: ${status}` };
-  if (!Array.isArray(data) || !data.length) return { success: true, message: 'No active URLs', synced: 0 };
-  const results = {};
-  let total = 0;
-  for (const row of data) {
-    const name = row.halls?.name || `hall_${row.hall_id}`;
-    console.log('Syncing hall:', name, 'URL:', row.url);
-    const res = await syncHall(name, row.url, sb);
-    console.log('Sync result:', name, res);
-    results[name] = res;
-    if (res.success) total += res.synced || 0;
-  }
-  return { success: true, synced: total, results };
+  return events;
 }
 
 export default {
   async fetch(request, env) {
-    const { pathname } = new URL(request.url);
-    if (pathname === '/health') return new Response(JSON.stringify({ status: 'ok' }), { headers: { 'Content-Type': 'application/json' } });
-    if (pathname === '/sync') {
-      const result = await syncAll(env);
-      return new Response(JSON.stringify(result, null, 2), { status: result.success ? 200 : 500, headers: { 'Content-Type': 'application/json' } });
-    }
-    return new Response(JSON.stringify({ error: 'Not found' }), { status: 404, headers: { 'Content-Type': 'application/json' } });
+    return new Response('Worker is running');
   },
-  async scheduled(event, env) { await syncAll(env); }
+  
+  async scheduled(event, env) {
+    try {
+      const client = await getSupabaseClient(env);
+      
+      const urlsResponse = await client.request('GET', '/calendar_urls');
+      const urls = urlsResponse.data || [];
+      
+      if (!urls.length) {
+        console.log('No calendar URLs found');
+        return;
+      }
+      
+      const availability = {};
+      
+      for (const entry of urls) {
+        if (!entry.hall_id || !entry.ical_url) continue;
+        
+        try {
+          const response = await fetch(entry.ical_url);
+          if (!response.ok) continue;
+          
+          const text = await response.text();
+          const events = parseICalEvents(text);
+          
+          for (const event of events) {
+            const date = event.startDate;
+            if (!date) continue;
+            
+            if (!availability[date]) {
+              availability[date] = {};
+            }
+            
+            const isShamur = event.summary && event.summary.includes('שמור');
+            availability[date][entry.hall_id] = isShamur ? 'שמור' : 'פנוי';
+          }
+        } catch (e) {
+          console.error(`Failed to sync ${entry.ical_url}:`, e.message);
+        }
+      }
+      
+      const updates = Object.entries(availability).map(([date, halls]) => ({
+        date,
+        ...halls
+      }));
+      
+      if (updates.length > 0) {
+        await client.request('PATCH', '/זמינות', updates);
+        console.log(`Synced ${updates.length} dates`);
+      }
+    } catch (e) {
+      console.error('Scheduled task error:', e);
+    }
+  }
 };
