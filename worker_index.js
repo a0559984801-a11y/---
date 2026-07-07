@@ -60,7 +60,7 @@ async function syncHall(hallName, icalUrl, sb) {
     rows.push({ p_date: dateStr, p_hall_name: hallName, p_status: status_value });
   }
   
-  const { status } = await sb.rpc('sync_availability_batch', { rows });
+  const { status } = await sb.rpc('sync_availability_batch', rows);
   console.log('Batch sync:', hallName, status);
   return { success: status < 400, synced: rows.length };
 }
