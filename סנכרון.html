@@ -275,6 +275,10 @@
                 display: none !important;
             }
         }
+        /* PDF fix */
+        .print-container {
+            page-break-before: avoid;
+        }
     </style>
 </head>
 <body>
@@ -304,7 +308,6 @@
         </div>
 
         <p>שנערך ונחתם בתאריך: <span id="doc_date" style="border-bottom:1px dotted #7f8c8d; display:inline-block; direction:ltr; min-width:100px;"></span></p>
-        <script>document.getElementById('doc_date').textContent = new Date().toISOString().split('T')[0];</script>
 
         <!-- פרטי בעל הפלטפורמה -->
         <h3>🖥️ פרטי בעל הפלטפורמה</h3>
@@ -458,6 +461,11 @@
 
     window.addEventListener('load', () => {
         initCanvas('sig_hall');
+        // תאריך אוטומטי
+        const d = new Date();
+        const pad = n => String(n).padStart(2,'0');
+        document.getElementById('doc_date').textContent =
+            `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
     });
 
     // ===== אימות שדות טלפון - ספרות בלבד =====
@@ -559,15 +567,20 @@
 
     // ===== יצירת PDF =====
     async function generatePdfBlob() {
+        const actionBar = document.querySelector('.action-bar');
+        if (actionBar) actionBar.style.display = 'none';
         const element = document.querySelector('.print-container');
         const opt = {
-            margin: 10,
+            margin: [5, 10, 5, 10],
             filename: 'agreement.pdf',
-            image: { type: 'jpeg', quality: 0.95 },
-            html2canvas: { scale: 2, useCORS: true, logging: false },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, logging: false, allowTaint: true, letterRendering: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
         };
-        return await html2pdf().set(opt).from(element).outputPdf('blob');
+        const blob = await html2pdf().set(opt).from(element).outputPdf('blob');
+        if (actionBar) actionBar.style.display = '';
+        return blob;
     }
 
     function blobToBase64(blob) {
