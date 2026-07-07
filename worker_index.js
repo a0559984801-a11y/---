@@ -6,12 +6,16 @@ async function getSupabaseClient(env) {
     url: supabaseUrl,
     key: supabaseKey,
     async request(method, path, body = null) {
-      const headers = {'Authorization': `Bearer ${supabaseKey}`,'Content-Type': 'application/json','apikey': supabaseKey};
-      const options = {method, headers};
+      const headers = {
+        'Authorization': `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json',
+        'apikey': supabaseKey
+      };
+      const options = { method, headers };
       if (body) options.body = JSON.stringify(body);
       const response = await fetch(`${supabaseUrl}/rest/v1${path}`, options);
       if (!response.ok) throw new Error(`${method} ${path}: ${response.status}`);
-      return {status: response.status, data: await response.json()};
+      return { status: response.status, data: await response.json() };
     }
   };
 }
@@ -22,15 +26,20 @@ function parseICalEvents(icalText) {
   let current = null;
   for (const line of lines) {
     const trimmed = line.trim();
-    if (trimmed === 'BEGIN:VEVENT') current = {};
-    else if (trimmed === 'END:VEVENT' && current) {events.push(current); current = null;}
-    else if (current && trimmed.includes(':')) {
+    if (trimmed === 'BEGIN:VEVENT') {
+      current = {};
+    } else if (trimmed === 'END:VEVENT' && current) {
+      events.push(current);
+      current = null;
+    } else if (current && trimmed.includes(':')) {
       const [key, ...rest] = trimmed.split(':');
       const value = rest.join(':');
       if (key === 'DTSTART' || key.startsWith('DTSTART;')) {
         const dateStr = (value.includes(':') ? value.split(':').pop() : value).split('T')[0];
         current.startDate = dateStr;
-      } else if (key === 'SUMMARY') current.summary = value;
+      } else if (key === 'SUMMARY') {
+        current.summary = value;
+      }
     }
   }
   return events;
@@ -38,13 +47,16 @@ function parseICalEvents(icalText) {
 
 export default {
   async fetch(request, env) {
-    return new Response('Worker running');
+    return new Response('Worker running', { status: 200 });
   },
+
   async scheduled(event, env) {
     try {
       const client = await getSupabaseClient(env);
-      const {data: urls} = await client.request('GET', '/calendar_urls');
-      if (!urls || !urls.length) return;
+      const urlsResponse = await client.request('GET', '/calendar_urls');
+      const urls = urlsResponse.data || [];
+      if (!urls.length) return;
+
       const availability = {};
       for (const entry of urls) {
         if (!entry.hall_id || !entry.ical_url) continue;
@@ -63,7 +75,8 @@ export default {
           console.error(`Error: ${e.message}`);
         }
       }
-      const updates = Object.entries(availability).map(([date, halls]) => ({date, ...halls}));
+
+      const updates = Object.entries(availability).map(([date, halls]) => ({ date, ...halls }));
       if (updates.length > 0) {
         await client.request('PATCH', '/זמינות', updates);
       }
