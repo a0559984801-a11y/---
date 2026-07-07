@@ -51,7 +51,7 @@ async function syncHall(hallName, icalUrl, sb) {
   const eventDates = new Map();
   events.forEach(e => e.startDate && eventDates.set(e.startDate, e));
   const today = new Date(), end = new Date(today);
-  end.setDate(end.getDate() + 365);
+ end.setDate(end.getDate() + 30);
   let ok = 0;
   for (let d = new Date(today); d <= end; d.setDate(d.getDate() + 1)) {
     const dateStr = d.toISOString().split('T')[0];
