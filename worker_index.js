@@ -51,16 +51,18 @@ async function syncHall(hallName, icalUrl, sb) {
   const eventDates = new Map();
   events.forEach(e => e.startDate && eventDates.set(e.startDate, e));
   const today = new Date(), end = new Date(today);
- end.setDate(end.getDate() + 30);
-  let ok = 0;
+  end.setDate(end.getDate() + 365);
+  
+  const rows = [];
   for (let d = new Date(today); d <= end; d.setDate(d.getDate() + 1)) {
     const dateStr = d.toISOString().split('T')[0];
     const status_value = eventDates.has(dateStr) ? getStatus(eventDates.get(dateStr).summary) : 'פנוי';
-    const { status } = await sb.rpc('sync_availability', { p_date: dateStr, p_hall_name: hallName, p_status: status_value });
-    if (status < 400) ok++;
+    rows.push({ p_date: dateStr, p_hall_name: hallName, p_status: status_value });
   }
-  console.log('syncHall done:', hallName, ok, 'synced');
-  return { success: true, eventCount: events.length, synced: ok };
+  
+  const { status } = await sb.rpc('sync_availability_batch', { rows });
+  console.log('Batch sync:', hallName, status);
+  return { success: status < 400, synced: rows.length };
 }
 
 async function syncAll(env) {
