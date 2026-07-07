@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>אישור וכתב הסכמה לסנכרון יומני אולמות</title>
     <style>
-        @import url('https://googleapis.com');
+        @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;700&display=swap');
         
         body {
             font-family: 'Assistant', sans-serif;
@@ -411,7 +411,6 @@
     </style>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
     <script>
 
     // ===== חתימה על קנבס =====
@@ -446,17 +445,19 @@
     }
 
     function canvasHasContent(id) {
-        const c = document.getElementById(id);
-        const data = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
-        for (let i = 3; i < data.length; i += 4) {
-            if (data[i] > 0) return true;
-        }
-        return false;
+        try {
+            const c = document.getElementById(id);
+            if (!c) return false;
+            const data = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+            for (let i = 3; i < data.length; i += 4) {
+                if (data[i] > 0) return true;
+            }
+            return false;
+        } catch(e) { return false; }
     }
 
     window.addEventListener('load', () => {
         initCanvas('sig_hall');
-        initCanvas('sig_click');
     });
 
     // ===== אימות שדות טלפון - ספרות בלבד =====
@@ -528,7 +529,7 @@
     // ===== איסוף נתוני טופס =====
     function collectData() {
         const g = id => document.getElementById(id)?.innerText?.trim() || '—';
-        const dateSpans = document.querySelectorAll('p span[contenteditable]');
+        const docDate = document.getElementById('doc_date')?.textContent?.trim() || '—';
 
         let calLines = '';
         document.querySelectorAll('.calendar-table tbody tr').forEach((row, i) => {
@@ -538,7 +539,7 @@
         });
 
         return {
-            'תאריך': `${dateSpans[0]?.innerText?.trim() || ''}/${dateSpans[1]?.innerText?.trim() || ''}/${dateSpans[2]?.innerText?.trim() || ''}`,
+            'תאריך': docDate,
             'שם הבעלים / חברה': g('val_manager'),
             'נציג האולם': g('val_rep'),
             'טלפון נציג': g('val_repPhone'),
@@ -607,7 +608,7 @@
             btn.textContent = 'שולח למייל...';
 
             const base64Pdf = await blobToBase64(pdfBlob);
-            const response = await fetch('https://send-agreement.alam-beklick.workers.dev', {
+            const response = await fetch('https://send-agreement.a0559984801.workers.dev', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
