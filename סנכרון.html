@@ -18,7 +18,7 @@
 
         .print-container {
             max-width: 820px;
-            margin: 20px auto 100px auto;
+            margin: 20px auto 20px auto;
             padding: 40px;
             border: 1px solid #e0e0e0;
             border-radius: 8px;
@@ -568,8 +568,13 @@
     // ===== יצירת PDF =====
     async function generatePdfBlob() {
         const actionBar = document.querySelector('.action-bar');
+        const container = document.querySelector('.print-container');
         if (actionBar) actionBar.style.display = 'none';
-        const element = document.querySelector('.print-container');
+        const origMargin = container.style.margin;
+        container.style.margin = '0';
+        container.style.boxShadow = 'none';
+        container.style.border = 'none';
+
         const opt = {
             margin: [5, 10, 5, 10],
             filename: 'agreement.pdf',
@@ -578,7 +583,12 @@
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
             pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
         };
-        const blob = await html2pdf().set(opt).from(element).outputPdf('blob');
+
+        const blob = await html2pdf().set(opt).from(container).outputPdf('blob');
+
+        container.style.margin = origMargin;
+        container.style.boxShadow = '';
+        container.style.border = '';
         if (actionBar) actionBar.style.display = '';
         return blob;
     }
