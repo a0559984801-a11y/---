@@ -303,7 +303,8 @@
             </div>
         </div>
 
-        <p>שנערך ונחתם בתאריך: <span contenteditable="true" style="border-bottom: 1px dotted #7f8c8d; min-width: 30px; display: inline-block; text-align: center;">__</span>/<span contenteditable="true" style="border-bottom: 1px dotted #7f8c8d; min-width: 30px; display: inline-block; text-align: center;">__</span>/<span contenteditable="true" style="border-bottom: 1px dotted #7f8c8d; min-width: 50px; display: inline-block; text-align: center;">____</span></p>
+        <p>שנערך ונחתם בתאריך: <span id="doc_date" style="border-bottom:1px dotted #7f8c8d; display:inline-block; direction:ltr; min-width:100px;"></span></p>
+        <script>document.getElementById('doc_date').textContent = new Date().toISOString().split('T')[0];</script>
 
         <!-- פרטי בעל הפלטפורמה -->
         <h3>🖥️ פרטי בעל הפלטפורמה</h3>
@@ -374,9 +375,10 @@
             <li><strong>שימוש בנתונים:</strong> אולם בקליק מתחייבת להשתמש בקישורי היומן אך ורק לצורך עדכון מידע הזמינות של האולם.</li>
             <li><strong>אימות מידע:</strong> כל צד מאשר כי הנתונים שניתנו במסמך זה נכונים ומדויקים, וכי יש לו סמכות חוקית לחתום על הסכם זה.</li>
             <li><strong>עדכונים:</strong> בעל האולם מתחייב ליידע את אולם בקליק במהירות ובכתב על כל שינוי במידע, לרבות שינויים בקישורי היומן או במאפייני האולם.</li>
-            <li><strong>משך ההסכם:</strong> הסכם זה ייכנס לתוקף ביום חתימתו על ידי שני הצדדים ויהיה בתוקף למשך שתים עשרה (12) חודשים. ההסכם יתחדש אוטומטית לתקופות נוספות של שנה אחת, אלא אם אחד הצדדים יודיע בכתב על רצונו שלא לחדשו, לפחות שלושים (30) ימים לפני תום התקופה.</li>
+            <li><strong>משך ההסכם:</strong> הסכם זה ייכנס לתוקף ביום חתימתו על ידי שני הצדדים. כל עוד אחד מהצדדים לא הודיע על פרישה מההסכם, הפרישה תיכנס לתוקף לאחר שבוע.</li>
             <li><strong>שינויים בהסכם:</strong> כל שינוי, תיקון או הוספה להסכם זה ייעשו אך ורק בכתב ויאושרו בחתימת שני הצדדים.</li>
             <li><strong>יישוב סכסוכים:</strong> כל מחלוקת או סכסוך העלולים להתעורר בין הצדדים בקשר להסכם זה יקבעו לפי דין תורת ישראל ולפני בית הדין של ר' מרדכי גרוס שליט"א, ולא יפנו לבתי המשפט האזרחיים.</li>
+            <li><strong>חתימה אלקטרונית:</strong> חתימה אלקטרונית תהיה תקפה כחתימה ידנית.</li>
         </ol>
 
         <!-- סעיף חתימות -->
@@ -385,7 +387,6 @@
                 <p><strong>בעלות / מנהל האולם</strong></p>
                 <canvas id="sig_hall" class="sig-canvas"></canvas>
                 <button class="sig-clear-btn" onclick="clearCanvas('sig_hall')">✕ נקה חתימה</button>
-                <div class="signature-line">שם ותאריך</div>
             </div>
             <div class="signature-box">
                 <p><strong>אולם בקליק</strong></p>
@@ -514,12 +515,10 @@
         calTable.style.outline = hasUrl ? 'none' : '2px solid #e74c3c';
         if (!hasUrl) valid = false;
 
-        // חתימה חובה (תמונה או ציור)
-        const preview = document.getElementById('sig_hall_preview');
+        // חתימה חובה
         const sigHall = document.getElementById('sig_hall');
-        if (!preview.src && !canvasHasContent('sig_hall')) {
-            sigHall.parentElement.style.borderColor = '#e74c3c';
-            sigHall.parentElement.style.background = '#fff5f5';
+        if (!canvasHasContent('sig_hall')) {
+            sigHall.style.border = '2px solid #e74c3c';
             valid = false;
         }
 
@@ -530,7 +529,6 @@
     function collectData() {
         const g = id => document.getElementById(id)?.innerText?.trim() || '—';
         const dateSpans = document.querySelectorAll('p span[contenteditable]');
-        const preview = document.getElementById('sig_hall_preview');
 
         let calLines = '';
         document.querySelectorAll('.calendar-table tbody tr').forEach((row, i) => {
@@ -553,8 +551,8 @@
             'טלפון אולם': g('val_hallPhone'),
             'קישור לאולם': g('val_link'),
             'יומנים': calLines || '—',
-            'חתימת בעל האולם': preview.src ? '✔ עלויה בהצלחה' : canvasHasContent('sig_hall') ? '✔ נחתם דיגיטלית' : 'לא נחתם',
-            'חתימת אולם בקליק': canvasHasContent('sig_click') ? '✔ נחתם דיגיטלית' : 'לא נחתם',
+            'חתימת בעל האולם': canvasHasContent('sig_hall') ? '✔ נחתם דיגיטלית' : 'לא נחתם',
+            'חתימת אולם בקליק': '✔ נחתם דיגיטלית',
         };
     }
 
@@ -580,11 +578,6 @@
     }
 
     // ===== הורדה אוטומטית + שליחה למייל =====
-    document.addEventListener('DOMContentLoaded', function() {
-        // סימון שדות של אולם-בקליק כ-readonly
-        document.getElementById('val_companyId').parentElement.style.opacity = '0.6';
-        document.getElementById('val_owner').parentElement.style.opacity = '0.6';
-    });
 
     document.getElementById('sendBtn').onclick = async function() {
         if (!validateForm()) {
@@ -595,7 +588,7 @@
 
         const btn = this;
         btn.disabled = true;
-        btn.textContent = '⏳ מייצר ושולח...';
+        btn.textContent = 'מייצר PDF...';
 
         try {
             const data = collectData();
@@ -611,39 +604,33 @@
             a.click();
             URL.revokeObjectURL(url);
 
-            // שליחה למייל דרך Resend
+            btn.textContent = 'שולח למייל...';
+
             const base64Pdf = await blobToBase64(pdfBlob);
-            const response = await fetch('https://api.resend.com/emails', {
+            const response = await fetch('https://send-agreement.alam-beklick.workers.dev', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer re_jKdqiAQj_FTNJArash7GVqyC8NKnxgFUE'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    from: 'noreply@alambeklick.co.il',
-                    to: 'a0559984801@gmail.com',
-                    subject: `הסכם סנכרון - ${companyName}`,
-                    html: `<p>הסכם סנכרון יומנים עבור <strong>${companyName}</strong></p><p>התאריך: ${data['תאריך']}</p>`,
-                    attachments: [
-                        {
-                            filename: fileName,
-                            content: base64Pdf,
-                            content_type: 'application/pdf'
-                        }
-                    ]
+                    companyName,
+                    fileName,
+                    pdf: base64Pdf,
+                    date: data['תאריך']
                 })
             });
 
-            if (!response.ok) throw new Error('שליחה נכשלה');
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.message || 'שליחה נכשלה');
+            }
 
-            btn.textContent = '✅ הורד ונשלח!';
+            btn.textContent = 'הורד ונשלח בהצלחה';
             showSuccessMessage();
 
         } catch (err) {
             console.error(err);
             btn.disabled = false;
-            btn.textContent = '📧 הורד כ-PDF';
-            alert('שגיאה: ' + err.message);
+            btn.textContent = 'שליחה אוטומטית במייל והורדה למחשב שלכם בפורמט PDF';
+            alert('שגיאה בשליחה: ' + err.message);
         }
     };
 
