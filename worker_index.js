@@ -27,6 +27,24 @@ function parseICalEvents(icalText) {
     else if (l === 'END:VEVENT' && cur) { events.push(cur); cur = null; }
     else if (cur && l.includes(':')) {
       const [key, ...vp] = l.split(':'), value = vp.join(':');
+      if (key === 'DTSTART' || key.startsWith('DTSTART;')) {
+        const dateStr = (value.includes(':') ? value.split(':').pop() : value).split('T')[0];
+        cur.startDate = dateStr;
+        console.log('Date extracted:', dateStr, 'from', value);
+      }
+      else if (key === 'SUMMARY') cur.summary = value;
+    }
+  }
+  return events;
+}(icalText) {
+  const events = [], lines = icalText.split('\n');
+  let cur = null;
+  for (const line of lines) {
+    const l = line.trim();
+    if (l === 'BEGIN:VEVENT') cur = {};
+    else if (l === 'END:VEVENT' && cur) { events.push(cur); cur = null; }
+    else if (cur && l.includes(':')) {
+      const [key, ...vp] = l.split(':'), value = vp.join(':');
       if (key === 'DTSTART' || key.startsWith('DTSTART;')) cur.startDate = (value.includes(':') ? value.split(':').pop() : value).split('T')[0];
       else if (key === 'SUMMARY') cur.summary = value;
     }
