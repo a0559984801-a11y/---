@@ -2,8 +2,8 @@ name = "ical-sync-production"
 main = "worker_index.js"
 compatibility_date = "2026-07-06"
 
-[triggers.crons]
-crons = ["* * * * *"]
+[[triggers.crons]]
+cron = "* * * * *"
 
 [vars]
 SUPABASE_URL = "https://mzrnwtwyuligsaxeoxhh.supabase.co"
