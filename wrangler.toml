@@ -3,4 +3,3 @@ main = "worker_index.js"
 compatibility_date = "2026-07-06"
 [vars]
 SUPABASE_URL = "https://mzrnwtwyuligsaxeoxhh.supabase.co"
-SUPABASE_SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16cm53dHd5dWxpZ3NheGVveGhoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MjgwMTEwNSwiZXhwIjoyMDk4Mzc3MTA1fQ.hYmeHxgwd6XmIazIf8918IGQejr6HzkvvjAHjjJlspM"
