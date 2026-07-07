@@ -35,11 +35,12 @@ function parseICalEvents(icalText) {
 }
 
 function getStatus(s) {
-  const v = (s || '').toLowerCase();
-  if (v.includes('פנוי') || v.includes('free') || v.includes('available')) return 'פנוי';
-  if (v.includes('התפנה')) return 'פנוי';
-  if (v.includes('שמור') || v.includes('reserved') || v.includes('pending')) return 'שמור';
-  return 'תפוס';
+  const v = (s || '').toLowerCase().trim();
+  if (!v || v.includes('פנוי') || v.includes('free')) return 'פנוי';
+  if (v.includes('שמור') || v.includes('reserved')) return 'שמור';
+  if (v.includes('תפוס') || v.includes('busy')) return 'תפוס';
+  return 'פנוי';
+}
 }
 
 async function syncHall(hallName, icalUrl, sb) {
